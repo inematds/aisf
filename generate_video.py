@@ -193,6 +193,13 @@ if __name__ == "__main__":
         "Recommended for GPUs with <24GB VRAM. Cannot be used with --use_usp.",
     )
 
+    parser.add_argument(
+        "--num_inference_steps",
+        type=int,
+        default=8,
+        help="Number of denoising steps. 4 is faster (2x), 8 gives slightly better quality. Default: 8.",
+    )
+
     # ==================== Video Extension Parameters ====================
     parser.add_argument(
         "--input_video",
@@ -286,7 +293,7 @@ if __name__ == "__main__":
         video_out = pipe.extend_video(args.input_video, args.prompt, args.duration, args.seed, resolution=args.resolution)
     elif args.task_type == "reference_to_video":
         pipe = ReferenceToVideoPipeline(model_path=args.model_id, use_usp=args.use_usp, offload=args.offload, low_vram=args.low_vram)
-        video_out = pipe.generate_video(args.ref_imgs, args.prompt, args.duration, args.seed, resolution=args.resolution)
+        video_out = pipe.generate_video(args.ref_imgs, args.prompt, args.duration, args.seed, resolution=args.resolution, num_inference_steps=args.num_inference_steps)
     elif args.task_type == "talking_avatar":
         config = WAN_CONFIGS["talking-avatar-19B"]
         pipe = TalkingAvatarPipeline(

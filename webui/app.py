@@ -41,7 +41,7 @@ DESCRIÇÃO DO EPISÓDIO:
 PARÂMETROS TÉCNICOS:
 - Task type   : {task_type}
 - Resolução   : {resolution}
-- Duração/cena: ~{duration}s (ajuste conforme ritmo de cada cena)
+- Duração/cena: entre 5 e 8s (MÁXIMO 10s — nunca ultrapassar)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REFERÊNCIA DAS TASKS DO SKYREELS V3:
@@ -325,6 +325,7 @@ generation_state = {
     "current_nq_id": None,
     "current_nq_name": None,
     "current_nq_scene": None,
+    "proc": None,
 }
 log_queue = queue.Queue()
 
@@ -348,6 +349,9 @@ _nq_id_counter = 0
 _ep_gen_state: dict = {}       # job_id -> {status, jobs, saved_doc, ep_title, error, raw}
 _ep_gen_by_project: dict = {}  # project_name -> job_id (latest)
 _ep_gen_lock = threading.Lock()
+
+# ---- Background bulk image generation (environments/elements) ----
+_bulk_img_state: dict = {}     # bulk_job_id -> {status, done, total, errors}
 
 
 def _next_nq_id():
@@ -542,10 +546,11 @@ def build_cmd_from_job(job):
     task_type = job.get("task_type", "reference_to_video")
     prompt    = job.get("prompt", "")
     resolution = job.get("resolution", "540P")
-    duration  = str(job.get("duration", 5))
+    duration  = str(min(int(job.get("duration", 5)), 10))  # cap at 10s
     seed      = str(job.get("seed", 42))
     offload   = bool(job.get("offload", True))
     low_vram  = bool(job.get("low_vram", False))
+    num_inference_steps = int(job.get("num_inference_steps", 4))
 
     # talking_avatar only supports 480P / 720P
     if task_type == "talking_avatar" and resolution == "540P":
@@ -558,6 +563,7 @@ def build_cmd_from_job(job):
         "--resolution", resolution,
         "--duration", duration,
         "--seed", seed,
+        "--num_inference_steps", str(num_inference_steps),
     ]
 
     if low_vram:
@@ -757,6 +763,7 @@ def run_generation(cmd, env_extra=None, metadata=None, job=None):
             cwd=str(PROJECT_ROOT),
             env=env,
         )
+        generation_state["proc"] = proc
 
         for line in proc.stdout:
             line = line.rstrip()
@@ -766,12 +773,13 @@ def run_generation(cmd, env_extra=None, metadata=None, job=None):
             generation_state["log"].append(line)
             log_queue.put(line)
 
-            # Parse progress from tqdm output e.g. " 25%|██▌  | 2/8"
-            if "/8 [" in line or "/4 [" in line:
+            # Parse progress from tqdm output e.g. " 25%|██▌  | 2/8 ["
+            _m = re.match(r'^\s*(\d+)%\|', line)
+            if _m:
                 try:
-                    part = line.strip().split("|")[0].strip().rstrip("%")
-                    pct = int(part)
-                    generation_state["progress"] = pct
+                    pct = int(_m.group(1))
+                    if 0 <= pct <= 100:
+                        generation_state["progress"] = pct
                 except Exception:
                     pass
 
@@ -789,6 +797,7 @@ def run_generation(cmd, env_extra=None, metadata=None, job=None):
                 generation_state["last_video"] = str(last_video.relative_to(PROJECT_ROOT))
                 if job:
                     job["output_video"] = generation_state["last_video"]
+                    _save_queues()  # persist "done" + output_video before audio mixing
                     # Auto-mix audio (reference_to_video/extension geram vídeo silencioso)
                     if job.get("task_type") != "talking_avatar":
                         sp_str = job.get("input_audio", "")
@@ -798,7 +807,8 @@ def run_generation(cmd, env_extra=None, metadata=None, job=None):
                         sp = sp if (sp and sp.exists()) else None
                         bg = bg if (bg and bg.exists()) else None
                         if sp or bg:
-                            _mix_audio_scene(last_video, speech_path=sp, bg_path=bg)
+                            bg_vol = float(job.get("audio_bg_volume", 0.28))
+                            _mix_audio_scene(last_video, speech_path=sp, bg_path=bg, bg_volume=bg_vol)
                 # Save metadata JSON alongside the video
                 if metadata:
                     metadata["generated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -819,6 +829,7 @@ def run_generation(cmd, env_extra=None, metadata=None, job=None):
     finally:
         generation_state["running"] = False
         generation_state["current_job_id"] = None
+        generation_state["proc"] = None
         log_queue.put("__DONE__")
         # Update named queue status
         if job:
@@ -998,7 +1009,18 @@ def stream():
 
 @app.route("/status")
 def status():
-    return jsonify(generation_state)
+    return jsonify({k: v for k, v in generation_state.items() if k != "proc"})
+
+
+@app.route("/cancel", methods=["POST"])
+def cancel_generation():
+    """Cancela a geração em andamento (SIGTERM no subprocess)."""
+    proc = generation_state.get("proc")
+    if not generation_state.get("running") or proc is None:
+        return jsonify({"error": "Nenhuma geração em andamento"}), 400
+    proc.terminate()
+    return jsonify({"ok": True})
+
 
 
 @app.route("/uploads/list")
@@ -1325,7 +1347,16 @@ def create_named_queue():
         "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
     if proj:
-        nq["ep_code"] = _next_ep_code(proj)
+        # Aceitar ep_code pré-calculado (gerado pelo generate-episode) ou gerar novo
+        nq["ep_code"] = data.get("ep_code") or _next_ep_code(proj)
+    # Persistir environments e new_elements gerados pela IA (prompts para geração de imagens)
+    if data.get("environments"):
+        nq["environments"] = data["environments"]
+    if data.get("new_elements"):
+        nq["new_elements"] = data["new_elements"]
+    # Persistir descrição/sinopse do episódio
+    if data.get("description"):
+        nq["description"] = data["description"]
     with nq_lock:
         named_queues.append(nq)
     _save_queues()
@@ -1491,16 +1522,22 @@ def nq_gallery(nq_id):
     proj_name = nq.get("project", "")
     ep_code   = nq.get("ep_code", "")
 
-    result: dict = {"images": [], "audios": [], "videos": [], "docs": []}
+    result: dict = {"images": [], "audios": [], "trilhas": [], "videos": [], "docs": []}
 
     if proj_name and ep_code:
         ep_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code
-        for f in sorted((ep_dir / "imagens").glob("*")) if (ep_dir / "imagens").exists() else []:
-            if f.is_file():
-                result["images"].append(str(f.relative_to(PROJECT_ROOT)))
+        for subdir in ("imagens", "ambiente", "elementos"):
+            sub = ep_dir / subdir
+            if sub.exists():
+                for f in sorted(sub.glob("*")):
+                    if f.is_file():
+                        result["images"].append(str(f.relative_to(PROJECT_ROOT)))
         for f in sorted((ep_dir / "audios").glob("*")) if (ep_dir / "audios").exists() else []:
             if f.is_file():
                 result["audios"].append(str(f.relative_to(PROJECT_ROOT)))
+        for f in sorted((ep_dir / "trilha").glob("*")) if (ep_dir / "trilha").exists() else []:
+            if f.suffix.lower() in (".mp3", ".wav", ".ogg", ".m4a"):
+                result["trilhas"].append(str(f.relative_to(PROJECT_ROOT)))
 
     # Vídeos gerados (output_video de cada job)
     for j in nq.get("jobs", []):
@@ -1509,6 +1546,585 @@ def nq_gallery(nq_id):
             result["videos"].append(vid)
 
     return jsonify(result)
+
+
+@app.route("/nqueues/<int:nq_id>/upload/<subfolder>", methods=["POST"])
+def nq_upload_file(nq_id, subfolder):
+    """Upload de arquivo para pasta do episódio (trilha, imagens, audios)."""
+    if subfolder not in ("trilha", "imagens", "audios"):
+        return jsonify({"error": "Pasta inválida"}), 400
+    nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+    proj_name = nq.get("project", "")
+    ep_code   = nq.get("ep_code", "")
+    if not proj_name or not ep_code:
+        return jsonify({"error": "Episódio não vinculado a projeto"}), 400
+    ep_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code / subfolder
+    ep_dir.mkdir(parents=True, exist_ok=True)
+    uploaded = []
+    for file in request.files.getlist("files"):
+        fname = secure_filename(file.filename)
+        if not fname:
+            continue
+        file.save(str(ep_dir / fname))
+        uploaded.append(fname)
+    return jsonify({"ok": True, "uploaded": uploaded})
+
+
+def _nq_gen_prompt_image(nq_id: int, item_type: str, idx: int):
+    """Gera imagem para um ambiente ou elemento pelo índice no NQ.
+
+    item_type: 'environments' | 'new_elements'
+    Salva em projetos/<proj>/episodios/<ep_code>/ambiente/ ou /elementos/
+    Atualiza o campo 'generated_ref' do item e persiste.
+    """
+    import urllib.request as urllib_req
+
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    items = nq.get(item_type, [])
+    if idx < 0 or idx >= len(items):
+        return jsonify({"error": "Índice inválido"}), 400
+
+    item = items[idx]
+    proj_name = nq.get("project", "")
+    ep_code   = nq.get("ep_code", "")
+    if not proj_name or not ep_code:
+        return jsonify({"error": "Episódio sem projeto ou ep_code"}), 400
+
+    subfolder = "ambiente" if item_type == "environments" else "elementos"
+    img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code / subfolder
+    img_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_name = re.sub(r'[^\w\-]', '_', item.get("name", "item")[:40])
+    dest = img_dir / f"{safe_name}.png"
+
+    cfg = _load_global_config()
+    img_prompt = item.get("image_prompt") or item.get("description") or item.get("name", "")
+
+    # Refs: existing_ref do item + personagens selecionados do episódio (até 3 slots)
+    ref_paths = []
+    existing = item.get("existing_ref") or item.get("generated_ref")
+    if existing and (PROJECT_ROOT / existing).exists():
+        ref_paths.append(existing)
+    # Adiciona personagens/figurantes selecionados como refs de consistência
+    ep_chars = list(nq.get("characters", [])) + list(nq.get("figurantes", []))
+    for c in ep_chars:
+        if len(ref_paths) >= 3:
+            break
+        if c not in ref_paths and (PROJECT_ROOT / c).exists():
+            ref_paths.append(c)
+
+    try:
+        result = _dispatch_image(cfg, img_prompt, ref_paths or None)
+        url = result["images"][0]["url"]
+        urllib_req.urlretrieve(url, str(dest))
+        rel = str(dest.relative_to(PROJECT_ROOT))
+        with nq_lock:
+            nq[item_type][idx]["generated_ref"] = rel
+        _save_queues()
+        return jsonify({"ok": True, "path": rel})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/nqueues/<int:nq_id>/environments/<int:idx>/generate-image", methods=["POST"])
+def nq_gen_env_image(nq_id, idx):
+    return _nq_gen_prompt_image(nq_id, "environments", idx)
+
+
+@app.route("/nqueues/<int:nq_id>/new-elements/<int:idx>/generate-image", methods=["POST"])
+def nq_gen_element_image(nq_id, idx):
+    return _nq_gen_prompt_image(nq_id, "new_elements", idx)
+
+
+def _nq_patch_prompt_item(nq_id: int, item_type: str, idx: int):
+    """Atualiza campos editáveis de um ambiente ou elemento (name, image_prompt, description)."""
+    data = request.get_json(force=True, silent=True) or {}
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+        if nq is None:
+            return jsonify({"error": "Fila não encontrada"}), 404
+        items = nq.get(item_type, [])
+        if idx < 0 or idx >= len(items):
+            return jsonify({"error": "Índice inválido"}), 400
+        for field in ("name", "image_prompt", "description", "existing_ref"):
+            if field in data:
+                items[idx][field] = data[field]
+    _save_queues()
+    return jsonify({"ok": True})
+
+
+@app.route("/nqueues/<int:nq_id>/environments/<int:idx>", methods=["PATCH"])
+def nq_patch_env(nq_id, idx):
+    return _nq_patch_prompt_item(nq_id, "environments", idx)
+
+
+@app.route("/nqueues/<int:nq_id>/new-elements/<int:idx>", methods=["PATCH"])
+def nq_patch_element(nq_id, idx):
+    return _nq_patch_prompt_item(nq_id, "new_elements", idx)
+
+
+@app.route("/nqueues/<int:nq_id>/generate-all-prompt-images", methods=["POST"])
+def nq_gen_all_prompt_images(nq_id):
+    """Gera imagens de todos ambientes + elementos em background e retorna job_id."""
+    import urllib.request as urllib_req
+
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name = nq.get("project", "")
+    ep_code   = nq.get("ep_code", "")
+    if not proj_name or not ep_code:
+        return jsonify({"error": "Episódio sem projeto ou ep_code"}), 400
+
+    bulk_job_id = uuid.uuid4().hex[:8]
+    bulk_state: dict = {"status": "running", "done": 0, "total": 0, "errors": []}
+
+    with nq_lock:
+        environments = list(nq.get("environments", []))
+        new_elements = list(nq.get("new_elements", []))
+    bulk_state["total"] = len(environments) + len(new_elements)
+
+    # Store in a simple global dict for polling
+    _bulk_img_state[bulk_job_id] = bulk_state
+
+    def _run():
+        cfg = _load_global_config()
+        ep_chars = list(nq.get("characters", [])) + list(nq.get("figurantes", []))
+        def _gen(item_type, items, subfolder):
+            img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code / subfolder
+            img_dir.mkdir(parents=True, exist_ok=True)
+            for idx2, item in enumerate(items):
+                safe_name = re.sub(r'[^\w\-]', '_', item.get("name", "item")[:40])
+                dest = img_dir / f"{safe_name}.png"
+                img_prompt = item.get("image_prompt") or item.get("description") or item.get("name", "")
+                ref_paths = []
+                existing = item.get("existing_ref") or item.get("generated_ref")
+                if existing and (PROJECT_ROOT / existing).exists():
+                    ref_paths.append(existing)
+                for c in ep_chars:
+                    if len(ref_paths) >= 3:
+                        break
+                    if c not in ref_paths and (PROJECT_ROOT / c).exists():
+                        ref_paths.append(c)
+                try:
+                    result = _dispatch_image(cfg, img_prompt, ref_paths or None)
+                    url = result["images"][0]["url"]
+                    urllib_req.urlretrieve(url, str(dest))
+                    rel = str(dest.relative_to(PROJECT_ROOT))
+                    with nq_lock:
+                        nq[item_type][idx2]["generated_ref"] = rel
+                    _save_queues()
+                    _bulk_img_state[bulk_job_id]["done"] += 1
+                except Exception as err:
+                    _bulk_img_state[bulk_job_id]["errors"].append(str(err))
+                    _bulk_img_state[bulk_job_id]["done"] += 1
+
+        _gen("environments", environments, "ambiente")
+        _gen("new_elements", new_elements, "elementos")
+        _bulk_img_state[bulk_job_id]["status"] = "done"
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"ok": True, "bulk_job_id": bulk_job_id, "total": bulk_state["total"]})
+
+
+@app.route("/nqueues/bulk-img-status/<bulk_job_id>")
+def nq_bulk_img_status(bulk_job_id):
+    state = _bulk_img_state.get(bulk_job_id)
+    if not state:
+        return jsonify({"error": "não encontrado"}), 404
+    return jsonify(state)
+
+
+@app.route("/nqueues/<int:nq_id>/analyze-environments", methods=["POST"])
+def nq_analyze_environments(nq_id):
+    """Analisa as cenas de um episódio via Claude CLI e gera environments + new_elements com prompts.
+    Não gera imagens — apenas estrutura com prompts para geração futura.
+    Roda em background; retorna analyse_job_id para polling.
+    """
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name = nq.get("project", "")
+    jobs      = nq.get("jobs", [])
+
+    analyse_job_id = uuid.uuid4().hex[:8]
+    _bulk_img_state[analyse_job_id] = {"status": "running", "phase_msg": "Analisando cenas…"}
+
+    def _run():
+        try:
+            # Coletar contexto do projeto
+            all_images, all_docs_content = [], []
+            if proj_name:
+                proj_dir = PROJECTS_DIR / proj_name
+                img_dir  = proj_dir / "imagens"
+                if img_dir.exists():
+                    for f in sorted(img_dir.iterdir()):
+                        if f.is_file():
+                            all_images.append(str(f.relative_to(PROJECT_ROOT)))
+                docs_dir = proj_dir / "docs"
+                if docs_dir.exists():
+                    for f in sorted(docs_dir.iterdir()):
+                        if f.is_file() and f.suffix in (".md", ".txt") and not f.name.startswith("_sys_"):
+                            try:
+                                all_docs_content.append(
+                                    f"--- {f.name} ---\n{f.read_text(encoding='utf-8', errors='ignore')[:2000]}"
+                                )
+                            except Exception:
+                                pass
+
+            # Resumo das cenas
+            scenes_summary = []
+            for j in jobs:
+                entry = f"- [{j.get('label','')}] prompt: {j.get('prompt','')[:200]}"
+                if j.get("image_prompt"):
+                    entry += f" | image_prompt: {j.get('image_prompt','')[:150]}"
+                if j.get("ref_imgs"):
+                    refs = j["ref_imgs"] if isinstance(j["ref_imgs"], list) else [j["ref_imgs"]]
+                    entry += f" | refs: {', '.join(str(r) for r in refs[:4])}"
+                scenes_summary.append(entry)
+
+            images_list  = "\n".join(f"- {p}" for p in all_images) if all_images else "Nenhuma"
+            scenes_block = "\n".join(scenes_summary) if scenes_summary else "Nenhuma cena"
+            docs_block   = ("\n\nDocumentos do projeto:\n" + "\n\n".join(all_docs_content)[:3000]) if all_docs_content else ""
+
+            analyse_prompt = f"""Você é um supervisor de arte de uma série animada. Analise as cenas abaixo e identifique:
+1. Todos os AMBIENTES/LOCAÇÕES únicos que aparecem (corredor, sala de aula, laboratório, etc.)
+2. Elementos visuais NOVOS que aparecem nas cenas mas NÃO têm imagem de referência na lista de imagens disponíveis
+
+Imagens de referência já existentes no projeto:
+{images_list}
+
+Cenas do episódio:
+{scenes_block}
+{docs_block}
+
+Retorne SOMENTE um JSON válido (sem markdown) com este formato exato:
+{{
+  "environments": [
+    {{
+      "name": "Nome do Ambiente",
+      "description": "Descrição visual detalhada do ambiente para geração de imagem",
+      "image_prompt": "Prompt completo em inglês para gerar imagem deste ambiente via IA (anime style, detalhes visuais, iluminação, perspectiva, 16:9)",
+      "existing_ref": null
+    }}
+  ],
+  "new_elements": [
+    {{
+      "name": "Nome do Elemento",
+      "type": "character|object|creature",
+      "description": "Descrição visual do elemento",
+      "image_prompt": "Prompt completo em inglês para gerar imagem deste elemento via IA"
+    }}
+  ]
+}}
+
+Regras:
+- existing_ref: se alguma imagem da lista acima claramente corresponde a este ambiente/elemento, coloque o path exato; caso contrário null
+- new_elements: APENAS elementos que NÃO têm nenhuma imagem correspondente na lista
+- Se todos os ambientes já têm referência: new_elements = []
+- image_prompt deve ser detalhado (estilo anime, cores, iluminação, composição)"""
+
+            _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+            proc = subprocess.run(
+                ["/home/nmaldaner/.local/bin/claude", "-p", analyse_prompt],
+                capture_output=True, text=True, timeout=180, env=_env
+            )
+            raw = proc.stdout.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```[a-z]*\n?", "", raw)
+                raw = re.sub(r"\n?```$", "", raw)
+
+            result = json.loads(raw)
+            environments = result.get("environments", [])
+            new_elements = result.get("new_elements", [])
+
+            with nq_lock:
+                nq["environments"] = environments
+                nq["new_elements"]  = new_elements
+            _save_queues()
+
+            _bulk_img_state[analyse_job_id] = {
+                "status": "done",
+                "environments": environments,
+                "new_elements": new_elements,
+                "phase_msg": f"Concluído: {len(environments)} ambiente(s) · {len(new_elements)} elemento(s) novo(s)",
+            }
+        except Exception as e:
+            _bulk_img_state[analyse_job_id] = {
+                "status": "error",
+                "error": str(e),
+                "phase_msg": f"Erro: {e}",
+            }
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"ok": True, "analyse_job_id": analyse_job_id})
+
+
+@app.route("/nqueues/<int:nq_id>/characters", methods=["PATCH"])
+def nq_patch_characters(nq_id):
+    """Salva a seleção de personagens e figurantes do episódio."""
+    data = request.get_json(force=True, silent=True) or {}
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+        if nq is None:
+            return jsonify({"error": "Fila não encontrada"}), 404
+        nq["characters"]  = data.get("characters", [])
+        nq["figurantes"]  = data.get("figurantes", [])
+    _save_queues()
+    return jsonify({"ok": True})
+
+
+@app.route("/nqueues/<int:nq_id>/analyze-characters", methods=["POST"])
+def nq_analyze_characters(nq_id):
+    """Claude analisa as cenas do episódio e identifica quais imagens do projeto
+    correspondem a personagens/figurantes presentes. Roda em background."""
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name = nq.get("project", "")
+    jobs      = nq.get("jobs", [])
+    analyse_job_id = uuid.uuid4().hex[:8]
+    _bulk_img_state[analyse_job_id] = {"status": "running", "phase_msg": "Identificando personagens…"}
+
+    def _run():
+        try:
+            # Coletar imagens do projeto
+            all_images, figurante_images, docs_content = [], [], []
+            if proj_name:
+                proj_dir = PROJECTS_DIR / proj_name
+                for f in sorted((proj_dir / "imagens").iterdir()) if (proj_dir / "imagens").exists() else []:
+                    if f.is_file():
+                        all_images.append(str(f.relative_to(PROJECT_ROOT)))
+                for f in sorted((proj_dir / "figurantes").iterdir()) if (proj_dir / "figurantes").exists() else []:
+                    if f.is_file():
+                        figurante_images.append(str(f.relative_to(PROJECT_ROOT)))
+                for f in sorted((proj_dir / "docs").iterdir()) if (proj_dir / "docs").exists() else []:
+                    if f.is_file() and f.suffix in (".md", ".txt") and not f.name.startswith("_sys_"):
+                        try:
+                            docs_content.append(f"--- {f.name} ---\n{f.read_text(encoding='utf-8', errors='ignore')[:1500]}")
+                        except Exception:
+                            pass
+
+            # Refs já usadas nas cenas
+            used_refs: set = set()
+            for j in jobs:
+                refs = j.get("ref_imgs", [])
+                if isinstance(refs, list):
+                    used_refs.update(refs)
+                elif refs:
+                    used_refs.add(str(refs))
+
+            # Resumo das cenas
+            scenes = "\n".join(
+                f"- [{j.get('label','')}] {j.get('image_prompt') or j.get('prompt','')[:150]}"
+                for j in jobs
+            ) or "Nenhuma cena"
+
+            imgs_list = "\n".join(f"- {p}" for p in all_images) or "Nenhuma"
+            figs_list = "\n".join(f"- {p}" for p in figurante_images) or "Nenhuma"
+            docs_str  = ("\n\n" + "\n\n".join(docs_content)[:3000]) if docs_content else ""
+
+            prompt = f"""Você é supervisor de arte de uma série animada. Analise as cenas do episódio e identifique quais imagens de personagens e figurantes estão presentes.
+
+Imagens de personagens do projeto (pasta imagens/):
+{imgs_list}
+
+Imagens de figurantes do projeto (pasta figurantes/):
+{figs_list}
+
+Cenas do episódio:
+{scenes}
+{docs_str}
+
+Retorne SOMENTE JSON válido (sem markdown):
+{{
+  "characters": ["path/da/imagem1.png", "path/da/imagem2.png"],
+  "figurantes": ["path/do/figurante1.png"]
+}}
+
+Regras:
+- "characters": paths das imagens de personagens (de imagens/) que APARECEM nas cenas deste episódio
+- "figurantes": paths das imagens de figurantes (de figurantes/) relevantes para este episódio
+- Use APENAS paths exatos da lista acima — não invente
+- Se um personagem não aparece em nenhuma cena, não inclua
+- Se não há figurantes relevantes: "figurantes": []"""
+
+            _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+            proc = subprocess.run(
+                ["/home/nmaldaner/.local/bin/claude", "-p", prompt],
+                capture_output=True, text=True, timeout=120, env=_env
+            )
+            raw = proc.stdout.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```[a-z]*\n?", "", raw)
+                raw = re.sub(r"\n?```$", "", raw)
+            result = json.loads(raw)
+            characters = result.get("characters", [])
+            figurantes = result.get("figurantes", [])
+
+            with nq_lock:
+                nq["characters"] = characters
+                nq["figurantes"] = figurantes
+            _save_queues()
+
+            _bulk_img_state[analyse_job_id] = {
+                "status": "done",
+                "characters": characters,
+                "figurantes": figurantes,
+                "phase_msg": f"Concluído: {len(characters)} personagem(ns) · {len(figurantes)} figurante(s)",
+            }
+        except Exception as e:
+            _bulk_img_state[analyse_job_id] = {"status": "error", "error": str(e), "phase_msg": f"Erro: {e}"}
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"ok": True, "analyse_job_id": analyse_job_id})
+
+
+@app.route("/nqueues/<int:nq_id>/description", methods=["PATCH"])
+def nq_patch_description(nq_id):
+    """Salva ou atualiza o texto de descrição/sinopse do episódio no NQ."""
+    data = request.get_json(force=True, silent=True) or {}
+    text = data.get("description", "")
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+        if nq is None:
+            return jsonify({"error": "Fila não encontrada"}), 404
+        nq["description"] = text
+    _save_queues()
+    return jsonify({"ok": True})
+
+
+@app.route("/nqueues/<int:nq_id>/regenerate-prompts", methods=["POST"])
+def nq_regenerate_prompts(nq_id):
+    """Re-gera os prompts do episódio usando a descrição salva no NQ.
+    Roda as 2 fases do generate_episode em background.
+    Quando concluído, SUBSTITUI os jobs do NQ pelos novos (preserva environments/characters).
+    """
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name   = nq.get("project", "")
+    description = nq.get("description", "")
+    if not description:
+        return jsonify({"error": "Episódio sem descrição. Adicione um texto antes de refazer."}), 400
+
+    regen_job_id = uuid.uuid4().hex[:8]
+    _bulk_img_state[regen_job_id] = {"status": "running", "phase_msg": "Fase 1: identificando ambientes…"}
+
+    def _run():
+        try:
+            proj_dir = PROJECTS_DIR / proj_name if proj_name else None
+            all_images, all_audios, all_docs = [], [], []
+            if proj_dir and proj_dir.exists():
+                for f in sorted((proj_dir / "imagens").iterdir()) if (proj_dir / "imagens").exists() else []:
+                    if f.is_file(): all_images.append(str(f.relative_to(PROJECT_ROOT)))
+                for f in sorted((proj_dir / "audios").iterdir()) if (proj_dir / "audios").exists() else []:
+                    if f.is_file(): all_audios.append(f.name)
+                for f in sorted((proj_dir / "docs").iterdir()) if (proj_dir / "docs").exists() else []:
+                    if f.is_file() and f.suffix in (".md", ".txt") and not f.name.startswith("_sys_"):
+                        try:
+                            all_docs.append(f"--- {f.name} ---\n{f.read_text(encoding='utf-8', errors='ignore')[:2000]}")
+                        except Exception:
+                            pass
+
+            _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+            proc = None
+
+            # ── Fase 1 ──────────────────────────────────────────────────────
+            _bulk_img_state[regen_job_id]["phase_msg"] = "Fase 1: identificando ambientes e elementos…"
+            _fase1_template = _load_project_prompt(proj_dir, "_sys_fase1.md", DEFAULT_PHASE1_TEMPLATE) if proj_dir else DEFAULT_PHASE1_TEMPLATE
+            p1 = _build_phase1_prompt(description, all_images, all_docs, _fase1_template)
+            proc = subprocess.run(["/home/nmaldaner/.local/bin/claude", "-p", p1],
+                                  capture_output=True, text=True, timeout=180, env=_env)
+            raw1 = proc.stdout.strip()
+            if raw1.startswith("```"):
+                raw1 = re.sub(r"^```[a-z]*\n?", "", raw1); raw1 = re.sub(r"\n?```$", "", raw1)
+            p1r  = json.loads(raw1)
+            environments = p1r.get("environments", [])
+            new_elements = p1r.get("new_elements", [])
+
+            amb_map = {env["name"].lower(): env["existing_ref"] for env in environments if env.get("existing_ref")}
+
+            # ── Fase 2 ──────────────────────────────────────────────────────
+            _bulk_img_state[regen_job_id]["phase_msg"] = "Fase 2: gerando cenas…"
+            task_type  = nq.get("jobs", [{}])[0].get("task_type", "reference_to_video") if nq.get("jobs") else "reference_to_video"
+            resolution = nq.get("jobs", [{}])[0].get("resolution", "720P") if nq.get("jobs") else "720P"
+            duration   = nq.get("jobs", [{}])[0].get("duration", 5) if nq.get("jobs") else 5
+
+            _sys_template = _load_project_prompt(proj_dir, "_sys_episodio.md", _load_system_prompt()) if proj_dir else _load_system_prompt()
+            imgs_list = "\n".join(f"- {p}" for p in all_images) or "Nenhuma"
+            env_section = ""
+            if environments:
+                env_section = "\n\nMAPA DE AMBIENTES:\n"
+                for env in environments:
+                    ref = amb_map.get(env["name"].lower()) or env.get("existing_ref")
+                    env_section += f"- {env['name']}: {env.get('description','')}\n"
+                    if ref: env_section += f"  → REFERÊNCIA: {ref}\n"
+            resources = f"\nImagens de referência:\n{imgs_list}\n"
+            if all_audios: resources += "\nÁudios:\n" + "\n".join(f"- {a}" for a in all_audios) + "\n"
+            if all_docs: resources += "\nDocumentos:\n" + "\n\n".join(all_docs) + "\n"
+            if env_section: resources += env_section
+
+            json_tpl = (
+                f'{{\n  "label": "Cena 01 — Título",\n  "task_type": "{task_type}",\n'
+                f'  "prompt": "...",\n  "image_prompt": "...",\n  "audio_text": "...",\n'
+                f'  "voice_id": "",\n  "audio_bg": "",\n  "resolution": "{resolution}",\n'
+                f'  "duration": <5-8>,\n  "num_inference_steps": 4,\n  "seed": <1000-9999>,\n'
+                f'  "offload": false,\n  "low_vram": false,\n  "ref_imgs": []\n}}'
+            )
+            p2 = _sys_template.format(description=description, resources=resources,
+                                       task_type=task_type, resolution=resolution,
+                                       duration=duration, json_template=json_tpl)
+            proc = subprocess.run(["/home/nmaldaner/.local/bin/claude", "-p", p2],
+                                  capture_output=True, text=True, timeout=360, env=_env)
+            raw2 = proc.stdout.strip()
+            if raw2.startswith("```"):
+                raw2 = re.sub(r"^```[a-z]*\n?", "", raw2); raw2 = re.sub(r"\n?```$", "", raw2)
+            new_jobs_data = json.loads(raw2)
+            if not isinstance(new_jobs_data, list): raise ValueError("Resposta não é array")
+
+            # ── Substituir jobs no NQ ────────────────────────────────────────
+            with nq_lock:
+                nq_now = next((q for q in named_queues if q["id"] == nq_id), None)
+                if nq_now:
+                    new_jobs = []
+                    for i, jd in enumerate(new_jobs_data):
+                        if not jd.get("task_type"): continue
+                        new_jobs.append({
+                            "id": _next_job_id(), "nq_id": nq_id, "nq_job_index": i,
+                            "status": "idle", "output_video": "",
+                            "label": jd.get("label") or f"{jd['task_type']} — seed {jd.get('seed',42)}",
+                            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            **{k: v for k, v in jd.items() if k not in ("id","nq_id","status")},
+                        })
+                    nq_now["jobs"]         = new_jobs
+                    nq_now["environments"] = environments
+                    nq_now["new_elements"] = new_elements
+            _save_queues()
+
+            _bulk_img_state[regen_job_id] = {
+                "status": "done",
+                "phase_msg": f"Concluído! {len(new_jobs)} cenas · {len(environments)} ambiente(s)",
+            }
+        except Exception as e:
+            _bulk_img_state[regen_job_id] = {"status": "error", "error": str(e), "phase_msg": f"Erro: {e}"}
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"ok": True, "regen_job_id": regen_job_id})
 
 
 @app.route("/nqueues/<int:nq_id>/project-link", methods=["DELETE"])
@@ -1824,7 +2440,8 @@ def nq_mix_audio(nq_id):
             if has_aud:
                 skipped += 1
                 continue
-        ok = _mix_audio_scene(vpath, speech_path=sp, bg_path=bg)
+        bg_vol = float(job.get("audio_bg_volume", 0.28))
+        ok = _mix_audio_scene(vpath, speech_path=sp, bg_path=bg, bg_volume=bg_vol)
         if ok:
             mixed += 1
         else:
@@ -1835,19 +2452,24 @@ def nq_mix_audio(nq_id):
 
 @app.route("/nqueues/<int:nq_id>/set-audio-bg", methods=["POST"])
 def nq_set_audio_bg(nq_id):
-    """Define audio_bg em todos os jobs da fila (ou limpa se audio_bg vazio)."""
+    """Define audio_bg (e volume) em todos os jobs da fila, ou limpa se audio_bg vazio."""
     data = request.get_json(force=True)
-    audio_bg = data.get("audio_bg", "").strip()
+    audio_bg    = data.get("audio_bg", "").strip()
+    bg_volume   = round(float(data.get("bg_volume", 0.28)), 3)
+    only_silent = bool(data.get("only_silent", False))  # True = só jobs sem input_audio
     with nq_lock:
         nq = next((q for q in named_queues if q["id"] == nq_id), None)
         if nq is None:
             return jsonify({"error": "Fila não encontrada"}), 404
         updated = 0
         for job in nq["jobs"]:
-            job["audio_bg"] = audio_bg
+            if only_silent and job.get("input_audio"):
+                continue  # pula jobs que já têm narração
+            job["audio_bg"]        = audio_bg
+            job["audio_bg_volume"] = bg_volume if audio_bg else 0.28
             updated += 1
     _save_queues()
-    return jsonify({"ok": True, "updated": updated, "audio_bg": audio_bg})
+    return jsonify({"ok": True, "updated": updated, "audio_bg": audio_bg, "bg_volume": bg_volume})
 
 
 # ─── Config global ───────────────────────────────────────────
@@ -1898,7 +2520,7 @@ def get_project(name):
         return jsonify({"error": "Projeto não encontrado"}), 404
     _ensure_project_prompts(proj_dir)
     folders = {}
-    for sub in ("imagens", "audios", "docs", "episodios", "temp", "figurantes"):
+    for sub in ("imagens", "audios", "trilha", "docs", "episodios", "temp", "figurantes"):
         sub_dir = proj_dir / sub
         sub_dir.mkdir(exist_ok=True)
         files = []
@@ -1913,14 +2535,16 @@ def get_project(name):
     with nq_lock:
         episodes = [
             {
-                "id":       q["id"],
-                "name":     q["name"],
-                "ep_code":  q.get("ep_code", ""),
-                "total":    len(q.get("jobs", [])),
-                "done":     sum(1 for j in q.get("jobs", []) if j["status"] == "done"),
-                "running":  any(j["status"] == "running" for j in q.get("jobs", [])),
-                "error":    any(j["status"] == "error" for j in q.get("jobs", [])),
-                "status":   q.get("status", "idle"),
+                "id":               q["id"],
+                "name":             q["name"],
+                "ep_code":          q.get("ep_code", ""),
+                "total":            len(q.get("jobs", [])),
+                "done":             sum(1 for j in q.get("jobs", []) if j["status"] == "done"),
+                "running":          any(j["status"] == "running" for j in q.get("jobs", [])),
+                "error":            any(j["status"] == "error" for j in q.get("jobs", [])),
+                "status":           q.get("status", "idle"),
+                "has_environments": bool(q.get("environments") or q.get("new_elements")),
+                "has_characters":   bool(q.get("characters") or q.get("figurantes")),
             }
             for q in named_queues
             if q.get("project") == name
@@ -1937,7 +2561,7 @@ def get_project_voices(name):
 
 @app.route("/projects/<name>/upload/<subfolder>", methods=["POST"])
 def upload_project_file(name, subfolder):
-    if subfolder not in ("imagens", "audios", "docs", "episodios", "temp", "figurantes"):
+    if subfolder not in ("imagens", "audios", "trilha", "docs", "episodios", "temp", "figurantes"):
         return jsonify({"error": "Pasta inválida"}), 400
     proj_dir = PROJECTS_DIR / name / subfolder
     proj_dir.mkdir(parents=True, exist_ok=True)
@@ -1955,7 +2579,7 @@ def upload_project_file(name, subfolder):
 
 @app.route("/projects/<name>/files/<subfolder>/<filename>", methods=["DELETE"])
 def delete_project_file(name, subfolder, filename):
-    if subfolder not in ("imagens", "audios", "docs", "episodios", "temp", "figurantes"):
+    if subfolder not in ("imagens", "audios", "trilha", "docs", "episodios", "temp", "figurantes"):
         return jsonify({"error": "Pasta inválida"}), 400
     fpath = PROJECTS_DIR / name / subfolder / filename
     if not fpath.exists():
@@ -2090,7 +2714,8 @@ def generate_episode_prompts(name):
         f'  "voice_id": "ElevenLabs voice_id do personagem que fala nesta cena (extraia dos docs do projeto; vazio se narração genérica)",\n'
         f'  "audio_bg": "path para trilha de fundo do projeto (projetos/<nome>/audios/<arquivo>.mp3) ou string vazia",\n'
         f'  "resolution": "{resolution}",\n'
-        f'  "duration": <duração em segundos mais adequada para esta cena>,\n'
+        f'  "duration": <duração em segundos — OBRIGATÓRIO entre 5 e 8, nunca mais que 10>,\n'
+        f'  "num_inference_steps": 4,\n'
         f'  "seed": <número entre 1000 e 9999>,\n'
         f'  "offload": false,\n'
         f'  "low_vram": false,\n'
@@ -2102,6 +2727,10 @@ def generate_episode_prompts(name):
     _sys_template  = _load_project_prompt(proj_dir, "_sys_episodio.md", _load_system_prompt())
     _fase1_template = _load_project_prompt(proj_dir, "_sys_fase1.md", DEFAULT_PHASE1_TEMPLATE)
 
+    # Pre-calcular ep_code antes de iniciar o thread (usa lock para consistência)
+    with nq_lock:
+        provisional_ep_code = _next_ep_code(name)
+
     # Iniciar geração em background — retorna job_id imediatamente
     job_id = uuid.uuid4().hex[:8]
     with _ep_gen_lock:
@@ -2112,9 +2741,11 @@ def generate_episode_prompts(name):
             "jobs": [],
             "saved_doc": saved_doc,
             "ep_title": doc_title,
+            "ep_code": provisional_ep_code,
             "error": None,
             "raw": "",
             "environments": [],
+            "new_elements": [],
             "new_refs": [],
         }
         _ep_gen_by_project[name] = job_id
@@ -2143,165 +2774,15 @@ def generate_episode_prompts(name):
             new_elements = phase1_result.get("new_elements", [])
             with _ep_gen_lock:
                 _ep_gen_state[job_id]["environments"] = environments
+                _ep_gen_state[job_id]["new_elements"] = new_elements
 
-            # ─── FASE 1b: gerar imagens de ambiente + elementos novos ────────
-            new_refs   = []
-            amb_map    = {}   # env_name (lower) → path da imagem de ambiente gerada
-            cfg        = _load_global_config()
-            fal_key    = cfg.get("fal_key", "") or os.environ.get("FAL_KEY", "")
-            fal_ok     = False
-
-            if fal_key:
-                try:
-                    import fal_client
-                    import urllib.request as urllib_req
-                    os.environ["FAL_KEY"] = fal_key
-                    fal_ok = True
-                except ImportError:
-                    print("[ep-gen] fal-client não instalado — pulando geração de imagens")
-
-            if fal_ok:
-                # ── Figurantes do projeto ────────────────────────────────────────
-                fig_dir  = PROJECTS_DIR / name / "figurantes"
-                fig_dir.mkdir(exist_ok=True)
-                figurantes = [str(f.relative_to(PROJECT_ROOT))
-                              for f in sorted(fig_dir.iterdir()) if f.is_file()]
-
-                # Auto-gerar figurantes se pasta vazia e temos docs
-                if not figurantes and all_docs_content:
-                    with _ep_gen_lock:
-                        _ep_gen_state[job_id]["phase"]     = "generating_refs"
-                        _ep_gen_state[job_id]["phase_msg"] = "Gerando figurantes padrão do projeto…"
-                    docs_ctx = "\n\n".join(all_docs_content)[:2000]
-                    fig_prompt = (
-                        f"Anime style illustration, 2030 futuristic school, diverse group of "
-                        f"generic background students (extras), 3-4 teenagers with different "
-                        f"hair colors and styles, school uniforms with futuristic details, "
-                        f"neutral expressions, standing in corridor, high quality, "
-                        f"vibrant colors, 16:9 aspect ratio. "
-                        f"Based on series: {docs_ctx[:300]}"
-                    )
-                    try:
-                        res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                            "prompt": fig_prompt,
-                            "num_images": 1,
-                            "aspect_ratio": "16:9",
-                            "output_format": "png",
-                        })
-                        url   = res["images"][0]["url"]
-                        dest  = fig_dir / "figurantes_escola.png"
-                        urllib_req.urlretrieve(url, str(dest))
-                        figurantes = [str(dest.relative_to(PROJECT_ROOT))]
-                        print(f"[ep-gen] figurantes auto-gerados: {figurantes[0]}")
-                    except Exception as fig_err:
-                        print(f"[ep-gen] erro ao gerar figurantes: {fig_err}")
-
-                # ── Gerar imagem canônica por ambiente ───────────────────────────
-                total_envs = len(environments)
-                amb_dir = PROJECTS_DIR / name / "episodios" / f"gen_{job_id}" / "ambientes"
-                amb_dir.mkdir(parents=True, exist_ok=True)
-
-                for idx_a, env in enumerate(environments):
-                    with _ep_gen_lock:
-                        _ep_gen_state[job_id]["phase"]     = "generating_refs"
-                        _ep_gen_state[job_id]["phase_msg"] = (
-                            f"Gerando ambiente {idx_a + 1}/{total_envs}: {env.get('name', '')}…"
-                        )
-                    safe_env = re.sub(r'[^\w\-]', '_', env.get("name", "ambiente")[:40])
-                    dest     = amb_dir / f"{safe_env}.png"
-                    if dest.exists():
-                        amb_map[env["name"].lower()] = str(dest.relative_to(PROJECT_ROOT))
-                        continue
-                    try:
-                        env_desc = env.get("description", env.get("name", ""))
-                        img_prompt = (
-                            f"Anime style, 2030 futuristic school, {env_desc}, "
-                            f"background students present, vibrant colors, cinematic lighting, "
-                            f"16:9 aspect ratio, high quality illustration"
-                        )
-                        # Refs: existing_ref do ambiente + figurantes (max 3 slots)
-                        ref_paths = []
-                        existing = env.get("existing_ref")
-                        if existing and (PROJECT_ROOT / existing).exists():
-                            ref_paths.append(existing)
-                        ref_paths += figurantes[:3 - len(ref_paths)]
-
-                        if ref_paths:
-                            image_urls = []
-                            for rp in ref_paths[:3]:
-                                full = PROJECT_ROOT / rp
-                                if full.exists():
-                                    image_urls.append(fal_client.upload_file(str(full)))
-                            if image_urls:
-                                res = fal_client.subscribe("fal-ai/nano-banana/edit", arguments={
-                                    "prompt": img_prompt,
-                                    "image_urls": image_urls,
-                                    "num_images": 1,
-                                    "aspect_ratio": "16:9",
-                                    "output_format": "png",
-                                })
-                            else:
-                                res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                                    "prompt": img_prompt,
-                                    "num_images": 1,
-                                    "aspect_ratio": "16:9",
-                                    "output_format": "png",
-                                })
-                        else:
-                            res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                                "prompt": img_prompt,
-                                "num_images": 1,
-                                "aspect_ratio": "16:9",
-                                "output_format": "png",
-                            })
-
-                        url = res["images"][0]["url"]
-                        urllib_req.urlretrieve(url, str(dest))
-                        rel = str(dest.relative_to(PROJECT_ROOT))
-                        amb_map[env["name"].lower()] = rel
-                        # Atualizar existing_ref do ambiente com a imagem gerada
-                        env["generated_ref"] = rel
-                        print(f"[ep-gen] ambiente gerado: {rel}")
-                    except Exception as amb_err:
-                        print(f"[ep-gen] erro ao gerar ambiente '{env.get('name')}': {amb_err}")
-                        if env.get("existing_ref"):
-                            amb_map[env["name"].lower()] = env["existing_ref"]
-
-                # ── Gerar refs para elementos novos ──────────────────────────────
-                total_new = len(new_elements)
-                if new_elements:
-                    img_dir = PROJECTS_DIR / name / "imagens"
-                    img_dir.mkdir(exist_ok=True)
-                    for idx_e, elem in enumerate(new_elements):
-                        with _ep_gen_lock:
-                            _ep_gen_state[job_id]["phase_msg"] = (
-                                f"Gerando elemento novo {idx_e + 1}/{total_new}: "
-                                f"{elem.get('name', '')}…"
-                            )
-                        try:
-                            img_prompt = elem.get("image_prompt") or elem.get("name", "")
-                            res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                                "prompt": img_prompt,
-                                "num_images": 1,
-                                "aspect_ratio": "16:9",
-                                "output_format": "png",
-                            })
-                            url   = res["images"][0]["url"]
-                            safe_n = re.sub(r'[^\w\-]', '_', elem.get("name", "element")[:40])
-                            dest  = img_dir / f"{safe_n}.png"
-                            urllib_req.urlretrieve(url, str(dest))
-                            rel = str(dest.relative_to(PROJECT_ROOT))
-                            new_refs.append({
-                                "name": elem.get("name"),
-                                "type": elem.get("type", ""),
-                                "path": rel,
-                            })
-                            print(f"[ep-gen] nova ref gerada: {rel}")
-                        except Exception as img_err:
-                            print(f"[ep-gen] erro ao gerar '{elem.get('name')}': {img_err}")
-
-            with _ep_gen_lock:
-                _ep_gen_state[job_id]["new_refs"] = new_refs
+            # ─── Construir amb_map apenas com existing_refs (sem gerar imagens) ─
+            new_refs = []
+            amb_map  = {}   # env_name (lower) → path da imagem de referência existente
+            for env in environments:
+                existing = env.get("existing_ref")
+                if existing:
+                    amb_map[env["name"].lower()] = existing
 
             # ─── FASE 2: gerar cenas com referências completas ────────────────
             with _ep_gen_lock:
@@ -2373,9 +2854,13 @@ def generate_episode_prompts(name):
 
             with _ep_gen_lock:
                 if job_id in _ep_gen_state:
+                    n_envs = len(environments)
+                    n_elems = len(new_elements)
                     done_msg = f"Concluído! {len(jobs)} cenas"
-                    if new_refs:
-                        done_msg += f" · {len(new_refs)} nova(s) referência(s) criada(s)"
+                    if n_envs:
+                        done_msg += f" · {n_envs} ambiente(s)"
+                    if n_elems:
+                        done_msg += f" · {n_elems} elemento(s) novo(s)"
                     _ep_gen_state[job_id]["status"]   = "done"
                     _ep_gen_state[job_id]["phase"]     = "done"
                     _ep_gen_state[job_id]["phase_msg"] = done_msg
@@ -2418,6 +2903,7 @@ def regenerate_scene_prompt(name):
         f'  "prompt": "Descrição cinemática detalhada em inglês para geração de vídeo por IA...",\n'
         f'  "resolution": "{resolution}",\n'
         f'  "duration": {duration},\n'
+        f'  "num_inference_steps": 4,\n'
         f'  "seed": <número entre 1000 e 9999>,\n'
         f'  "offload": false,\n'
         f'  "low_vram": false,\n'
@@ -2459,23 +2945,210 @@ APENAS o JSON, nada mais."""
         }), 500
 
 
+# ── Kie.ai nano-banana-2 integration ─────────────────────────────────────────
+
+KIE_STYLES: dict = {
+    "anime":          ("An anime-style illustration of",    "Studio Ghibli inspired, soft colors, detailed backgrounds, expressive characters."),
+    "photorealistic": ("A photorealistic",                  "Captured with professional camera equipment, natural lighting, sharp details, high dynamic range."),
+    "cinematic":      ("A cinematic film still of",         "Dramatic lighting, shallow depth of field, anamorphic lens flare, color graded in teal and orange."),
+    "illustration":   ("A beautiful illustration of",       "Digital art style, vibrant colors, clean lines, professional quality illustration."),
+    "3d_render":      ("A high-quality 3D render of",       "Studio lighting, PBR materials, octane render quality, smooth surfaces, ambient occlusion."),
+    "concept_art":    ("Professional concept art of",       "Industry-standard quality, dynamic composition, atmospheric perspective, matte painting techniques."),
+    "watercolor":     ("A watercolor painting of",          "Soft washes of color, visible brush strokes, paper texture, artistic imperfections, dreamy quality."),
+    "product":        ("A professional product photography shot of", "White or minimal background, studio lighting, sharp focus, commercial quality, clean composition."),
+}
+
+
+def _enhance_prompt_for_kie(prompt: str, style: str) -> str:
+    """Apply style prefix+suffix from nano-banana-2 prompt enhancement engine."""
+    key = style.lower().replace(" ", "_").replace("-", "_")
+    if key not in KIE_STYLES:
+        return prompt
+    prefix, suffix = KIE_STYLES[key]
+    return f"{prefix} {prompt}. {suffix}"
+
+
+def _kie_call_image(
+    prompt: str,
+    api_key: str,
+    aspect_ratio: str = "16:9",
+    resolution: str = "1K",
+    image_urls: list | None = None,
+) -> dict:
+    """Call Kie.ai REST API (nano-banana-2) with polling.
+
+    Supports text-to-image and image-to-image (up to 14 reference images via image_input).
+    Returns {"images": [{"url": "..."}]} for compatibility with _fal_call_image.
+    Polls every 5 s for up to 3 minutes (36 attempts).
+    """
+    import time
+    import urllib.request as _req
+
+    base = "https://api.kie.ai/api/v1/jobs"
+    auth = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+    inp: dict = {
+        "prompt": prompt,
+        "aspect_ratio": aspect_ratio,
+        "resolution": resolution,
+        "output_format": "png",
+        "google_search": False,
+    }
+    # Image-to-image: pass reference images if provided (max 14)
+    valid_urls = [u for u in (image_urls or []) if u and u.startswith("http")]
+    if valid_urls:
+        inp["image_input"] = valid_urls[:14]
+        print(f"[kie.ai] image-to-image with {len(valid_urls)} ref(s)")
+
+    body = json.dumps({"model": "nano-banana-2", "input": inp}).encode()
+    req = _req.Request(f"{base}/createTask", data=body, headers=auth, method="POST")
+    with _req.urlopen(req, timeout=30) as r:
+        resp_data = json.loads(r.read())
+    task_id = resp_data["data"]["taskId"]
+    print(f"[kie.ai] task created: {task_id}")
+
+    # Poll for result
+    for attempt in range(36):
+        time.sleep(5)
+        poll = _req.Request(
+            f"{base}/recordInfo?taskId={task_id}",
+            headers={"Authorization": f"Bearer {api_key}"},
+            method="GET",
+        )
+        with _req.urlopen(poll, timeout=30) as r:
+            poll_data = json.loads(r.read())
+        status = poll_data.get("data", {}).get("status", "")
+        print(f"[kie.ai] attempt {attempt+1}: {status}")
+        if status == "success":
+            url = poll_data["data"]["imageUrl"]
+            return {"images": [{"url": url}]}
+        if status in ("failed", "error"):
+            raise RuntimeError(f"Kie.ai task failed: {poll_data}")
+
+    raise TimeoutError(f"Kie.ai task {task_id} timed out after 3 minutes")
+
+
+def _local_path_to_url(rel_path: str, server_host: str = "127.0.0.1", port: int = 7860) -> str | None:
+    """Convert a local project-relative path to a URL served by this Flask app."""
+    full = PROJECT_ROOT / rel_path
+    if not full.exists():
+        return None
+    return f"http://{server_host}:{port}/file/{rel_path}"
+
+
+def _dispatch_image(cfg: dict, prompt: str, ref_paths: list | None = None) -> dict:
+    """Route image generation to kie.ai or fal.ai based on configured image_model.
+
+    - kie-ai/nano-banana-2 → REST API, image+text (up to 14 refs via image_input URL),
+                             applies style enhancement from nano-banana-2 engine
+    - fal-ai/* → fal_client SDK, supports image references via upload
+    Returns {"images": [{"url": "..."}]}
+    """
+    model = cfg.get("image_model", "fal-ai/nano-banana")
+
+    if model == "kie-ai/nano-banana-2":
+        kie_key = cfg.get("kie_api_key", "") or os.environ.get("KIE_API_KEY", "")
+        if not kie_key:
+            raise ValueError("KIE_API_KEY não configurada — configure em ⚙ APIs")
+        style = cfg.get("kie_image_style", "anime")
+        enhanced = _enhance_prompt_for_kie(prompt, style)
+        print(f"[kie.ai] style={style} | enhanced: {enhanced[:120]}")
+        # Build image_input: convert local paths → public URLs served by this app
+        server_host = cfg.get("server_host", "127.0.0.1")
+        image_urls: list = []
+        for rp in (ref_paths or [])[:14]:
+            if rp.startswith("http"):
+                image_urls.append(rp)
+            else:
+                url = _local_path_to_url(rp, server_host)
+                if url:
+                    image_urls.append(url)
+        return _kie_call_image(enhanced, kie_key, image_urls=image_urls or None)
+
+    # fal.ai path
+    import fal_client as _fal
+    fal_key = cfg.get("fal_key", "") or os.environ.get("FAL_KEY", "")
+    if not fal_key:
+        raise ValueError("FAL_KEY não configurada — configure em ⚙ APIs")
+    os.environ["FAL_KEY"] = fal_key
+    image_urls_fal: list = []
+    if ref_paths:
+        for rp in ref_paths[:4]:
+            full = PROJECT_ROOT / rp
+            if full.exists():
+                image_urls_fal.append(_fal.upload_file(str(full)))
+    return _fal_call_image(_fal, model, prompt, image_urls_fal or None)
+
+
+def _fal_call_image(fal_client, model, prompt, image_urls=None):
+    """Call fal.ai image generation, adapting parameters to the model type.
+
+    Supported models:
+      fal-ai/nano-banana           – Gemini 2.5 Flash, text-to-image
+      fal-ai/nano-banana/edit      – Gemini 2.5 Flash, image+text edit
+      fal-ai/flux/dev              – Flux Dev, text-to-image
+      fal-ai/gpt-image-1-mini/edit – GPT Image 1 Mini, always edit
+    """
+    image_urls = [u for u in (image_urls or []) if u]
+
+    # ── GPT Image 1 ─────────────────────────────────────────────────────────
+    # Sempre requer image_urls (array). Sem refs → fallback para nano-banana.
+    if "gpt-image-1" in model:
+        if image_urls:
+            return fal_client.subscribe(model, arguments={
+                "prompt": prompt,
+                "image_urls": image_urls,
+                "n": 1,
+                "size": "1792x1024",
+            })
+        # Sem imagem de referência → fallback text-to-image
+        return fal_client.subscribe("fal-ai/nano-banana", arguments={
+            "prompt": prompt,
+            "num_images": 1,
+            "aspect_ratio": "16:9",
+            "output_format": "png",
+        })
+
+    # ── nano-banana / any model that has an /edit variant ───────────────────
+    if image_urls:
+        # Prefer explicit edit variant; default to nano-banana/edit when model
+        # is text-only (e.g. flux/dev which has no /edit variant).
+        if "nano-banana" in model:
+            edit_model = "fal-ai/nano-banana/edit"
+        elif model.endswith("/edit"):
+            edit_model = model
+        else:
+            edit_model = "fal-ai/nano-banana/edit"
+        return fal_client.subscribe(edit_model, arguments={
+            "prompt": prompt,
+            "image_urls": image_urls,
+            "num_images": 1,
+            "aspect_ratio": "16:9",
+            "output_format": "png",
+        })
+
+    # ── Text-to-image fallback ───────────────────────────────────────────────
+    txt_model = model.replace("/edit", "") if model.endswith("/edit") else model
+    if "nano-banana" in txt_model or txt_model == "fal-ai/nano-banana":
+        return fal_client.subscribe("fal-ai/nano-banana", arguments={
+            "prompt": prompt,
+            "num_images": 1,
+            "aspect_ratio": "16:9",
+            "output_format": "png",
+        })
+    return fal_client.subscribe(txt_model, arguments={
+        "prompt": prompt,
+        "num_images": 1,
+        "image_size": "landscape_16_9",
+    })
+
+
 @app.route("/projects/<name>/generate-images", methods=["POST"])
 def generate_episode_images(name):
     import urllib.request as urllib_req
-    try:
-        import fal_client
-    except ImportError:
-        return jsonify({"error": "fal-client não instalado. Execute: pip install fal-client"}), 500
-
     cfg = _load_global_config()
-    fal_key = cfg.get("fal_key", "") or os.environ.get("FAL_KEY", "")
-    if not fal_key:
-        return jsonify({"error": "FAL_KEY não configurada. Clique em ⚙ na aba Projetos."}), 400
-
-    os.environ["FAL_KEY"] = fal_key
     data    = request.get_json(force=True)
     jobs    = data.get("jobs", [])
-    model   = cfg.get("image_model", "fal-ai/flux/dev")
     img_dir = PROJECTS_DIR / name / "imagens"
     img_dir.mkdir(exist_ok=True)
 
@@ -2483,11 +3156,7 @@ def generate_episode_images(name):
     for job in jobs:
         img_prompt = job.get("image_prompt") or job.get("prompt", "")[:400]
         try:
-            res = fal_client.subscribe(model, arguments={
-                "prompt": img_prompt,
-                "num_images": 1,
-                "image_size": "landscape_16_9"
-            })
+            res = _dispatch_image(cfg, img_prompt)
             url = res["images"][0]["url"]
             fname = secure_filename(f"{job.get('label','scene')[:40]}.jpg").replace(" ", "_")
             dest  = img_dir / fname
@@ -2568,19 +3237,8 @@ def nq_generate_images(nq_id):
         return jsonify({"error": "Fila não encontrada"}), 404
     if not proj_name:
         return jsonify({"error": "Episódio não vinculado a um projeto"}), 400
-    try:
-        import fal_client
-    except ImportError:
-        return jsonify({"error": "fal-client não instalado"}), 500
 
-    cfg = _load_global_config()
-    fal_key = cfg.get("fal_key", "") or os.environ.get("FAL_KEY", "")
-    if not fal_key:
-        return jsonify({"error": "FAL_KEY não configurada. Clique em ⚙ na aba Projetos."}), 400
-
-    os.environ["FAL_KEY"] = fal_key
-    model = cfg.get("image_model", "fal-ai/flux/dev")
-    # Imagens do episódio ficam em projetos/<proj>/temp/<ep-name>/imagens/
+    cfg     = _load_global_config()
     ep_slug = nq.get("ep_code") or re.sub(r'[^\w\-]', '_', nq.get("name", f"ep_{nq_id}"))[:60]
     img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_slug / "imagens"
     img_dir.mkdir(parents=True, exist_ok=True)
@@ -2595,44 +3253,12 @@ def nq_generate_images(nq_id):
         img_prompt = job.get("image_prompt") or job.get("prompt", "")[:400]
         ref_paths  = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http")]
         try:
-            if ref_paths:
-                # Tem imagens de referência → usar nano-banana/edit (Gemini 2.5 Flash)
-                image_urls = []
-                for rp in ref_paths[:4]:   # máx 4 refs
-                    full = PROJECT_ROOT / rp
-                    if full.exists():
-                        image_urls.append(fal_client.upload_file(str(full)))
-                if image_urls:
-                    # Com refs → nano-banana/edit (Gemini 2.5 Flash + referências)
-                    res = fal_client.subscribe("fal-ai/nano-banana/edit", arguments={
-                        "prompt": img_prompt,
-                        "image_urls": image_urls,
-                        "num_images": 1,
-                        "aspect_ratio": "16:9",
-                        "output_format": "png",
-                    })
-                else:
-                    # Refs não encontradas em disco → text-to-image
-                    res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                        "prompt": img_prompt,
-                        "num_images": 1,
-                        "aspect_ratio": "16:9",
-                        "output_format": "png",
-                    })
-            else:
-                # Sem ref_imgs na cena → nano-banana text-to-image
-                res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                    "prompt": img_prompt,
-                    "num_images": 1,
-                    "aspect_ratio": "16:9",
-                    "output_format": "png",
-                })
+            res   = _dispatch_image(cfg, img_prompt, ref_paths or None)
             url   = res["images"][0]["url"]
             fname = secure_filename(f"{job.get('label','scene')[:40]}.png").replace(" ", "_")
             dest  = img_dir / fname
             urllib_req.urlretrieve(url, str(dest))
             rel   = str(dest.relative_to(PROJECT_ROOT))
-            # Preserva as ref_imgs originais e adiciona a imagem gerada como primeira (máx 4)
             orig_refs = [r for r in (job.get("ref_imgs") or []) if r != rel]
             jobs[i] = {**job, "ref_imgs": ([rel] + orig_refs)[:4]}
         except Exception as e:
@@ -2805,16 +3431,8 @@ def nq_job_generate_image(nq_id, job_id):
         return jsonify({"error": "Fila não encontrada"}), 404
     if not proj_name:
         return jsonify({"error": "Episódio não vinculado a um projeto"}), 400
-    try:
-        import fal_client
-    except ImportError:
-        return jsonify({"error": "fal-client não instalado"}), 500
 
-    cfg     = _load_global_config()
-    fal_key = cfg.get("fal_key", "") or os.environ.get("FAL_KEY", "")
-    if not fal_key:
-        return jsonify({"error": "FAL_KEY não configurada"}), 400
-
+    cfg = _load_global_config()
     with nq_lock:
         nq2 = next((q for q in named_queues if q["id"] == nq_id), None)
         job = next((j for j in nq2["jobs"] if j["id"] == job_id), None) if nq2 else None
@@ -2825,36 +3443,13 @@ def nq_job_generate_image(nq_id, job_id):
     if not img_prompt:
         return jsonify({"error": "Cena sem image_prompt"}), 400
 
-    os.environ["FAL_KEY"] = fal_key
-    model   = cfg.get("image_model", "fal-ai/flux/dev")
     ep_slug = nq2.get("ep_code") or re.sub(r'[^\w\-]', '_', nq2.get("name", f"ep_{nq_id}"))[:60]
     img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_slug / "imagens"
     img_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         ref_paths = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http")]
-        if ref_paths:
-            image_urls = []
-            for rp in ref_paths[:4]:
-                full = PROJECT_ROOT / rp
-                if full.exists():
-                    image_urls.append(fal_client.upload_file(str(full)))
-            if image_urls:
-                res = fal_client.subscribe("fal-ai/nano-banana/edit", arguments={
-                    "prompt": img_prompt, "image_urls": image_urls,
-                    "num_images": 1, "aspect_ratio": "16:9", "output_format": "png",
-                })
-            else:
-                res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                    "prompt": img_prompt, "num_images": 1,
-                    "aspect_ratio": "16:9", "output_format": "png",
-                })
-        else:
-            res = fal_client.subscribe("fal-ai/nano-banana", arguments={
-                "prompt": img_prompt, "num_images": 1,
-                "aspect_ratio": "16:9", "output_format": "png",
-            })
-
+        res   = _dispatch_image(cfg, img_prompt, ref_paths or None)
         url   = res["images"][0]["url"]
         fname = secure_filename(f"{job.get('label','scene')[:40]}.png").replace(" ", "_")
         dest  = img_dir / fname

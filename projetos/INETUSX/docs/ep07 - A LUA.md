@@ -1,0 +1,1 @@
+quero fazer um episodio das criancas estudando sobre a lua, toda parte de ciencia  sobre a lua, 10 cenas, termina com ele conhecendo a logica da fisica coma lua e a historia do home ter ido pisar na lua.  professor narrador fala q outro dia vamos aprender como esta sendo a vivencia das comunidade q estao vivendo na lua,

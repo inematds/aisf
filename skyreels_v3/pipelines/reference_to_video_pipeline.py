@@ -765,7 +765,7 @@ class ReferenceToVideoPipeline:
         gc.collect()
         torch.cuda.empty_cache()
 
-    def generate_video(self, ref_imgs, prompt, duration, seed, resolution="720P"):
+    def generate_video(self, ref_imgs, prompt, duration, seed, resolution="720P", num_inference_steps=8):
         from ..utils.util import get_height_width_from_image
 
         height, width = get_height_width_from_image(ref_imgs[0], resolution)
@@ -784,7 +784,7 @@ class ReferenceToVideoPipeline:
             "generator": torch.Generator(device=self.device).manual_seed(seed),
             "output_type": "pt",
             "start_step": 0,
-            "num_inference_steps": 8,
+            "num_inference_steps": num_inference_steps,
             "offload": self.offload,
             "block_offload": self.low_vram,
         }

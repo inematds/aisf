@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INEMA SkyReels V3 3.44.19</title>
+<title>INEMA AI SF StoriesForce 4.0.0</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; background: #0f0f13; color: #e0e0e0; min-height: 100vh; }
@@ -1011,7 +1011,7 @@
 <body>
 
 <header>
-  <h1>INEMA SkyReels V3 <span class="ver">3.<span class="feat" title="44 recursos adicionados">44</span>.<span class="fix" title="19 correções">19</span></span></h1>
+  <h1>INEMA AI SF <span style="color:#e0e0e0">StoriesForce</span> <span class="ver">4.<span class="feat" title="0 recursos adicionados">0</span>.<span class="fix" title="0 correções">0</span></span></h1>
   <span>Interface de Geração de Vídeo</span>
 </header>
 
@@ -1187,7 +1187,10 @@
     <!-- Progress Tab -->
     <div id="tab-progress" class="tab-content active">
       <div class="progress-wrap">
-        <div id="status-badge" class="status-badge status-idle">Aguardando</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="status-badge" class="status-badge status-idle">Aguardando</div>
+          <button id="btn-cancel-gen" onclick="cancelGeneration()" style="display:none;padding:3px 12px;font-size:.8rem;background:#2e0d0d;border:1px solid #f87171;color:#f87171;border-radius:6px;cursor:pointer">⏹ Cancelar</button>
+        </div>
         <div class="progress-bar-bg">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
@@ -1295,6 +1298,7 @@
             <div class="rb-scene" id="rb-scene-name"></div>
           </div>
           <button class="nq-running-goto" id="rb-goto-btn" onclick="">→ Ver</button>
+          <button class="nq-running-goto" id="rb-cancel-btn" onclick="cancelGeneration()" style="background:#2e0d0d;border-color:#f87171;color:#f87171">⏹ Parar</button>
         </div>
 
         <!-- List view: all named queues -->
@@ -1324,14 +1328,30 @@
             </div>
           </div>
           <!-- Panel: definir trilha de fundo para todas as cenas -->
-          <div id="nq-set-bg-panel" style="display:none;padding:10px 14px;background:#0d0d18;border:1px solid #3730a3;border-radius:6px;margin-bottom:10px;gap:8px;flex-wrap:wrap;align-items:center" class="nq-detail-actions">
-            <span style="font-size:.8rem;color:#c4b5fd;white-space:nowrap">🎵 Trilha de fundo para todas as cenas:</span>
-            <select id="nq-bg-select" class="proj-config-input" style="flex:1;min-width:220px;font-size:.8rem" onchange="document.getElementById('nq-bg-input').value=this.value">
-              <option value="">— selecionar arquivo —</option>
-            </select>
-            <input id="nq-bg-input" class="proj-config-input" style="flex:1;min-width:200px;font-size:.8rem" placeholder="ou cole o path manualmente">
-            <button class="nq-action-btn run" onclick="applyAudioBgToAll()" style="white-space:nowrap">✓ Aplicar</button>
-            <button class="nq-action-btn" onclick="applyAudioBgToAll(true)" style="white-space:nowrap;color:#f87171;border-color:#4a2020" title="Remove audio_bg de todas as cenas">✕ Limpar</button>
+          <div id="nq-set-bg-panel" style="display:none;padding:12px 14px;background:#0d0d18;border:1px solid #3730a3;border-radius:8px;margin-bottom:10px;flex-direction:column;gap:10px">
+            <div style="font-size:.85rem;color:#c4b5fd;font-weight:600">🎵 Trilha de fundo</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="nq-bg-select" class="proj-config-input" style="flex:1;min-width:240px;font-size:.8rem" onchange="onBgSelectChange(this.value)">
+                <option value="">— selecionar trilha —</option>
+              </select>
+              <input id="nq-bg-input" class="proj-config-input" style="flex:1;min-width:180px;font-size:.8rem" placeholder="ou cole o path manualmente" oninput="onBgInputChange(this.value)">
+            </div>
+            <audio id="nq-bg-preview" controls style="display:none;width:100%;height:36px;border-radius:6px"></audio>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:.8rem;color:#a78bfa;white-space:nowrap">Volume:</span>
+              <input type="range" id="nq-bg-volume" min="0" max="100" value="28" step="1"
+                style="flex:1;accent-color:#7c3aed;cursor:pointer"
+                oninput="document.getElementById('nq-bg-volume-label').textContent=this.value+'%'">
+              <span id="nq-bg-volume-label" style="font-size:.8rem;color:#c4b5fd;min-width:36px">28%</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="nq-action-btn run" onclick="applyAudioBgToAll()" style="white-space:nowrap">✓ Aplicar</button>
+              <button class="nq-action-btn" onclick="applyAudioBgToAll(true)" style="white-space:nowrap;color:#f87171;border-color:#4a2020">✕ Limpar</button>
+              <label style="font-size:.8rem;color:#a78bfa;display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto">
+                <input type="checkbox" id="nq-bg-only-silent" style="accent-color:#7c3aed">
+                Só nos sem áudio
+              </label>
+            </div>
           </div>
           <div id="nq-scenes" class="nq-scenes"></div>
         </div>
@@ -1601,6 +1621,17 @@ async function startGeneration() {
     }
   };
   eventSource.onerror = () => { eventSource.close(); btn.disabled = false; };
+}
+
+async function cancelGeneration() {
+  if (!confirm('Cancelar a geração em andamento?')) return;
+  try {
+    const r = await fetch('/cancel', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) { alert(d.error || 'Erro ao cancelar'); return; }
+    setStatus('idle', 'Cancelado');
+    document.getElementById('btn-cancel-gen').style.display = 'none';
+  } catch(e) { alert('Erro: ' + e); }
 }
 
 // ---- Per-card privacy ----
@@ -1954,6 +1985,7 @@ async function refreshNamedQueues() {
   try {
     const st = await fetch('/status').then(r => r.json());
     const banner = document.getElementById('nq-running-banner');
+    const cancelBtn = document.getElementById('btn-cancel-gen');
     if (st.running && st.current_nq_id != null) {
       document.getElementById('rb-queue-name').textContent = '▶ ' + (st.current_nq_name || 'Fila em execução');
       document.getElementById('rb-scene-name').textContent = st.current_nq_scene || '';
@@ -1961,6 +1993,33 @@ async function refreshNamedQueues() {
       banner.classList.add('visible');
     } else {
       banner.classList.remove('visible');
+    }
+    if (cancelBtn) cancelBtn.style.display = st.running ? '' : 'none';
+
+    // Auto-reconectar SSE se há geração em andamento mas sem stream ativo
+    if (st.running && (!eventSource || eventSource.readyState === EventSource.CLOSED)) {
+      setStatus('running', 'Gerando...');
+      updateProgress(st.progress || 0);
+      if (st.current_nq_scene) updateNqProgressInfo(st.current_nq_scene);
+      if (st.current_nq_id != null) {
+        connectStreamForNq(st.current_nq_id);
+      } else {
+        // Geração direta (sem fila nomeada)
+        eventSource = new EventSource('/stream');
+        eventSource.onmessage = (e) => {
+          const msg = JSON.parse(e.data);
+          if (msg.log) appendLog(msg.log);
+          if (msg.progress !== undefined) updateProgress(msg.progress);
+          if (msg.done) {
+            eventSource.close();
+            const ok = msg.done.status === 'done';
+            setStatus(ok ? 'done' : 'error', ok ? 'Concluído!' : 'Erro na geração');
+            if (ok) { updateProgress(100); refreshVideos(); }
+            document.getElementById('btn-generate').disabled = false;
+          }
+        };
+        eventSource.onerror = () => eventSource.close();
+      }
     }
   } catch(_) {}
 
@@ -2535,6 +2594,24 @@ function exportNqJson() {
   a.click();
 }
 
+function _loadBgPreview(path, autoplay = false) {
+  const preview = document.getElementById('nq-bg-preview');
+  if (!path) { preview.src = ''; preview.style.display = 'none'; return; }
+  preview.style.display = '';
+  if (preview.src !== location.origin + '/file/' + path) {
+    preview.src = '/file/' + path;
+    preview.load();
+  }
+  if (autoplay) preview.play().catch(() => {});
+}
+function onBgSelectChange(val) {
+  document.getElementById('nq-bg-input').value = val;
+  _loadBgPreview(val, true);
+}
+function onBgInputChange(val) {
+  _loadBgPreview(val.trim(), false);
+}
+
 async function toggleSetAudioBgPanel() {
   if (!currentNqId) return;
   const panel = document.getElementById('nq-set-bg-panel');
@@ -2542,46 +2619,84 @@ async function toggleSetAudioBgPanel() {
   panel.style.display = open ? 'flex' : 'none';
   if (!open) return;
 
-  // Carregar áudios disponíveis do projeto vinculado
   const select = document.getElementById('nq-bg-select');
-  select.innerHTML = '<option value="">— selecionar arquivo —</option>';
+  select.innerHTML = '<option value="">— selecionar trilha —</option>';
   try {
     const res = await fetch(`/nqueues/${currentNqId}`);
     const nq  = await res.json();
-    const proj = nq.project;
-    if (proj) {
-      const pr = await fetch(`/projects/${encodeURIComponent(proj)}`);
+
+    // Trilhas do projeto
+    if (nq.project) {
+      const pr = await fetch(`/projects/${encodeURIComponent(nq.project)}`);
       const pd = await pr.json();
-      const audios = (pd.files || []).filter(f => f.subfolder === 'audios');
-      audios.forEach(f => {
-        const opt = document.createElement('option');
-        opt.value = f.path;
-        opt.textContent = f.name;
-        select.appendChild(opt);
-      });
+      const projTrilhas = pd.folders?.trilha || [];
+      if (projTrilhas.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = '📁 Projeto';
+        projTrilhas.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.path; opt.textContent = f.name;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
     }
-  } catch(e) { /* sem projeto ou erro — fica só o input manual */ }
+
+    // Trilhas do episódio
+    try {
+      const gr = await fetch(`/nqueues/${currentNqId}/gallery`);
+      const gd = await gr.json();
+      const epTrilhas = gd.trilhas || [];
+      if (epTrilhas.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = '🎬 Episódio';
+        epTrilhas.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p; opt.textContent = p.split('/').pop();
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+    } catch(_) {}
+
+    // Pré-preencher volume atual (primeiro job com audio_bg_volume)
+    const j0 = (nq.jobs || []).find(j => j.audio_bg);
+    if (j0?.audio_bg_volume != null) {
+      const vol = Math.round(j0.audio_bg_volume * 100);
+      document.getElementById('nq-bg-volume').value = vol;
+      document.getElementById('nq-bg-volume-label').textContent = vol + '%';
+    }
+    // Pré-preencher trilha atual
+    if (j0?.audio_bg) {
+      document.getElementById('nq-bg-input').value = j0.audio_bg;
+      onBgInputChange(j0.audio_bg);
+      select.value = j0.audio_bg;
+    }
+  } catch(e) {}
 }
 
 async function applyAudioBgToAll(clear = false) {
   if (!currentNqId) return;
   const path = clear ? '' : (document.getElementById('nq-bg-input').value.trim() ||
                               document.getElementById('nq-bg-select').value.trim());
-  if (!clear && !path) { alert('Selecione um arquivo ou cole o path da trilha.'); return; }
+  if (!clear && !path) { alert('Selecione uma trilha ou cole o path.'); return; }
+  const volPct  = parseInt(document.getElementById('nq-bg-volume')?.value || '28');
+  const bgVolume = volPct / 100;
 
   const btn = document.querySelector('#nq-set-bg-panel button.run');
   const origText = btn?.textContent;
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
   try {
-    const res  = await fetch(`/nqueues/${currentNqId}/set-audio-bg`, {
+    const onlySilent = document.getElementById('nq-bg-only-silent')?.checked || false;
+    const res = await fetch(`/nqueues/${currentNqId}/set-audio-bg`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ audio_bg: path })
+      body: JSON.stringify({ audio_bg: path, bg_volume: bgVolume, only_silent: onlySilent })
     });
     const data = await res.json();
     if (!res.ok) { alert(data.error || 'Erro'); return; }
     const msg = clear
-      ? `✓ audio_bg removido de ${data.updated} cenas.`
-      : `✓ Trilha "${path.split('/').pop()}" aplicada em ${data.updated} cenas.\n\nClique em 🔊 Mix Áudio para mixar nos vídeos já gerados.`;
+      ? `✓ Trilha removida de ${data.updated} cenas.`
+      : `✓ Trilha "${path.split('/').pop()}" (${volPct}%) aplicada em ${data.updated} cenas.\n\nClique em 🔊 Mix Áudio para mixar nos vídeos já gerados.`;
     alert(msg);
     document.getElementById('nq-set-bg-panel').style.display = 'none';
   } catch(e) {
@@ -2956,8 +3071,8 @@ async function loadProjectDetail(name) {
   const res = await fetch(`/projects/${encodeURIComponent(name)}`);
   const data = await res.json();
   const detail = document.getElementById('proj-detail');
-  const FOLDER_LABELS = { imagens: '🖼 Imagens', audios: '🎵 Áudios', docs: '📄 Docs', figurantes: '👥 Figurantes' };
-  const FOLDER_ACCEPT = { imagens: 'image/*', audios: 'audio/*', docs: '*/*', figurantes: 'image/*' };
+  const FOLDER_LABELS = { imagens: '🖼 Imagens', audios: '🎵 Áudios', trilha: '🎶 Trilha', docs: '📄 Docs', figurantes: '👥 Figurantes' };
+  const FOLDER_ACCEPT = { imagens: 'image/*', audios: 'audio/*', trilha: 'audio/*', docs: '*/*', figurantes: 'image/*' };
 
   let html = `<div class="proj-detail-header">
     <button class="nq-action-btn" onclick="refreshProjects()">\u2190 Voltar</button>
@@ -2965,7 +3080,7 @@ async function loadProjectDetail(name) {
     <button class="nq-action-btn" onclick="confirmDeleteProject('${name}')" style="background:#2a1010;border-color:#4a2020;color:#f87171">\uD83D\uDDD1 Excluir projeto</button>
   </div>`;
 
-  for (const sub of ['imagens', 'figurantes', 'audios', 'docs']) {
+  for (const sub of ['imagens', 'figurantes', 'audios', 'trilha', 'docs']) {
     const files = data.folders[sub] || [];
     const isImgs = sub === 'imagens';
     const isFig  = sub === 'figurantes';
@@ -3008,9 +3123,9 @@ async function loadProjectDetail(name) {
   }
 
 
-  // Episodes section
+  // Episodes section — aberta por padrão
   const eps = data.episodes || [];
-  html += `<div class="proj-folder-section">
+  html += `<div class="proj-folder-section open">
     <div class="proj-folder-title" onclick="toggleProjSection(this)">
       <span class="pf-arrow">&#9654;</span>
       \uD83C\uDFAC Epis\xF3dios <span style="color:#444;font-weight:400">(${eps.length})</span>
@@ -3168,10 +3283,20 @@ function buildEpisodeCard(ep, projectName) {
   const safeName     = ep.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   const safeProjName = (projectName||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   const code = ep.ep_code ? `<span style="font-size:.68rem;color:#6366f1;background:#1a1a3a;border:1px solid #3a3a6a;border-radius:4px;padding:1px 6px;margin-right:4px;flex-shrink:0">${ep.ep_code}</span>` : '';
+  // Indicador de ambientes: verde se já tem, laranja+botão se não tem (e tem cenas)
+  const envBadge = ep.has_environments
+    ? `<span title="Ambientes e elementos mapeados" style="font-size:.68rem;color:#6fcf6f;flex-shrink:0">🌍</span>`
+    : ep.total > 0
+      ? `<button class="proj-ep-btn" id="ep-card-analyse-${ep.id}"
+            onclick="event.stopPropagation();quickAnalyseEp(${ep.id},'${safeProjName}',this)"
+            title="Gerar estrutura de ambientes e elementos via IA"
+            style="font-size:.68rem;padding:1px 7px;border-color:#7c3aed;color:#a78bfa">🔍 IA</button>`
+      : '';
   return `<div class="proj-ep-card" style="cursor:pointer" onclick="openEpisodeDetail(${ep.id},'${safeProjName}')">
     ${code}<span class="proj-ep-name" title="${ep.name}">${ep.name}</span>
     <span class="proj-ep-status" style="color:${clr}">${txt}</span>
     <div class="proj-ep-actions" onclick="event.stopPropagation()">
+      ${envBadge}
       <button class="proj-ep-btn" onclick="openEpisodeDetail(${ep.id},'${safeProjName}')" title="Ver cenas">\uD83D\uDCC4 Abrir</button>
       <button class="proj-ep-btn" onclick="confirmRemoveEpisode(${ep.id},'${safeName}','${safeProjName}',${ep.running})" style="border-color:#4a2020;color:#f87171" title="Remover">\uD83D\uDDD1</button>
     </div>
@@ -3186,6 +3311,32 @@ async function runEpisode(nqId, projectName) {
   } else {
     openEpisodeInFila(nqId);
   }
+}
+
+async function epGenAll(nqId, projName, btn) {
+  // Gera imagens → áudios → vídeos em sequência
+  const orig = btn.textContent;
+  btn.disabled = true;
+  const steps = [
+    { label: '⏳ Imagens…',  url: `/nqueues/${nqId}/generate-images` },
+    { label: '⏳ Áudios…',   url: `/nqueues/${nqId}/generate-audio`  },
+    { label: '⏳ Vídeos…',   url: `/nqueues/${nqId}/run`             },
+  ];
+  for (const step of steps) {
+    btn.textContent = step.label;
+    try {
+      const res  = await fetch(step.url, {method:'POST'});
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`Erro em "${step.label}":\n${data.error || JSON.stringify(data)}`);
+        break;
+      }
+    } catch(e) {
+      alert(`Erro: ${e}`); break;
+    }
+  }
+  btn.disabled = false; btn.textContent = orig;
+  if (projName) await openEpisodeDetail(nqId, projName);
 }
 
 async function epGenImages(nqId, projName, btn) {
@@ -3227,10 +3378,22 @@ async function openEpisodeDetail(nqId, projectName) {
   detail.style.display = 'flex';
   detail.innerHTML = '<div style="color:#555;padding:24px">Carregando\u2026</div>';
 
-  const res = await fetch(`/nqueues/${nqId}`);
+  // Fetch NQ + project images em paralelo
+  const [res, projRes] = await Promise.all([
+    fetch(`/nqueues/${nqId}`),
+    projectName ? fetch(`/projects/${encodeURIComponent(projectName)}`) : Promise.resolve(null),
+  ]);
   if (!res.ok) { detail.innerHTML = '<div style="color:#f87171;padding:24px">Erro ao carregar epis\xF3dio.</div>'; return; }
   const nq = await res.json();
   const jobs = nq.jobs || [];
+
+  // Imagens do projeto para o painel de personagens
+  let projImagens = [], projFigurantes = [];
+  if (projRes && projRes.ok) {
+    const pd = await projRes.json();
+    projImagens    = (pd.folders?.imagens    || []).map(f => f.path);
+    projFigurantes = (pd.folders?.figurantes || []).map(f => f.path);
+  }
 
   const STATUS_LABEL = { idle:'Aguardando', running:'Rodando', done:'Conclu\xEDdo', error:'Erro', pending:'Aguardando' };
   const STATUS_CLS   = { idle:'idle', running:'running', done:'done', error:'error', pending:'idle' };
@@ -3315,19 +3478,192 @@ async function openEpisodeDetail(nqId, projectName) {
   }
 
   const safeProjName = projectName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  // Seção de prompts: ambientes + elementos novos (se existirem no NQ)
+  const epEnvironments = nq.environments || [];
+  const epNewElements  = nq.new_elements  || [];
+  let promptsHtml = '';
+
+  // Episódios sem environments: mostrar botão para analisar
+  if (!epEnvironments.length && !epNewElements.length && jobs.length > 0) {
+    promptsHtml = `
+    <div style="border-bottom:1px solid #1a1a2a;background:#08080e;padding:8px 12px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:.75rem;color:#555">🌍 Sem estrutura de ambientes/elementos</span>
+      <button class="nq-action-btn" style="font-size:.72rem;padding:3px 12px" id="ep-analyse-btn-${nqId}"
+        onclick="analyseEpEnvironments(${nqId},'${safeProjName}',this)">🔍 Analisar com IA</button>
+      <span id="ep-analyse-status-${nqId}" style="font-size:.72rem;color:#6fcf6f"></span>
+    </div>`;
+  }
+
+  if (epEnvironments.length || epNewElements.length) {
+    const hasGenAll = epEnvironments.length + epNewElements.length > 0;
+
+    function buildPromptItem(item, i, itemType, nameColor) {
+      const refImg = item.generated_ref || item.existing_ref;
+      const rowId  = `pi-${nqId}-${itemType}-${i}`;
+      const editId = `pi-edit-${nqId}-${itemType}-${i}`;
+      const thumb = refImg
+        ? `<img id="pi-thumb-${rowId}" src="/file/${refImg}?t=${Date.now()}" style="width:72px;height:48px;object-fit:cover;border-radius:4px;border:1px solid #2a2a3a;flex-shrink:0;cursor:pointer" onclick="togglePromptItem('${editId}')">`
+        : `<div id="pi-thumb-${rowId}" style="width:72px;height:48px;background:#1a1a2a;border-radius:4px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#444;flex-shrink:0;cursor:pointer;text-align:center;line-height:1.3" onclick="togglePromptItem('${editId}')">sem<br>imagem</div>`;
+      const typeTag = item.type ? `<span style="font-size:.62rem;color:#555;background:#111;border:1px solid #222;border-radius:3px;padding:0 4px;margin-left:4px">${esc(item.type)}</span>` : '';
+      const shortPrompt = esc((item.image_prompt || item.description || '').slice(0, 80));
+      const apiType = itemType === 'environments' ? 'environments' : 'new-elements';
+      return `
+      <div style="border-bottom:1px solid #0d0d18">
+        <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;cursor:pointer" onclick="togglePromptItem('${editId}')">
+          ${thumb}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.78rem;color:${nameColor};font-weight:600;margin-bottom:2px">${esc(item.name || '')}${typeTag}</div>
+            <div style="font-size:.68rem;color:#555;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${shortPrompt}…</div>
+          </div>
+          <span style="color:#444;font-size:.7rem;flex-shrink:0;padding-top:2px">▾</span>
+        </div>
+        <div id="${editId}" style="display:none;background:#060610;border:1px solid #1a1a2a;border-radius:6px;padding:10px;margin-bottom:8px">
+          <div style="margin-bottom:6px">
+            <div style="font-size:.68rem;color:#666;margin-bottom:3px">Nome</div>
+            <input id="${rowId}-name" class="proj-config-input" value="${esc(item.name||'')}" style="font-size:.8rem">
+          </div>
+          <div style="margin-bottom:6px">
+            <div style="font-size:.68rem;color:#666;margin-bottom:3px">Prompt de imagem</div>
+            <textarea id="${rowId}-prompt" class="proj-config-input" rows="4" style="font-size:.78rem;resize:vertical">${esc(item.image_prompt||item.description||'')}</textarea>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:.68rem;color:#666;margin-bottom:3px">Referência existente (path)</div>
+            <input id="${rowId}-ref" class="proj-config-input" value="${esc(item.existing_ref||item.generated_ref||'')}" style="font-size:.75rem" placeholder="projetos/.../imagens/foto.png">
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="nq-action-btn run" style="font-size:.72rem;padding:3px 12px"
+              onclick="savePromptItem(${nqId},'${apiType}',${i},'${rowId}',this)">💾 Salvar</button>
+            <button class="nq-action-btn" id="pi-gen-btn-${rowId}" style="font-size:.72rem;padding:3px 12px"
+              onclick="genPromptImage(${nqId},'${apiType}',${i},this)">🖼 Gerar imagem</button>
+            <button class="nq-action-btn" style="font-size:.72rem;padding:3px 8px;margin-left:auto" onclick="togglePromptItem('${editId}')">✕ Fechar</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    let envsHtml  = epEnvironments.map((env,  i) => buildPromptItem(env,  i, 'environments', '#a78bfa')).join('');
+    let elemsHtml = epNewElements.map( (elem, i) => buildPromptItem(elem, i, 'new_elements',  '#22d3ee')).join('');
+
+    promptsHtml = `
+    <div id="ep-prompts-panel-${nqId}" style="border-bottom:1px solid #1a1a2a;background:#08080e">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;user-select:none" onclick="toggleEpPromptsPanel(${nqId})">
+        <span style="font-size:.8rem;color:#7c3aed;font-weight:700">🌍 Ambientes &amp; Elementos</span>
+        <span style="font-size:.72rem;color:#555">(${epEnvironments.length} amb · ${epNewElements.length} elem)</span>
+        <span id="ep-prompts-chevron-${nqId}" style="margin-left:auto;color:#555;font-size:.8rem">▾</span>
+        ${hasGenAll ? `<button class="nq-action-btn run" style="font-size:.72rem;padding:2px 10px" onclick="event.stopPropagation();genAllPromptImages(${nqId},this)">🖼 Gerar Todos</button>` : ''}
+        <button class="nq-action-btn" style="font-size:.72rem;padding:2px 10px" onclick="event.stopPropagation();analyseEpEnvironments(${nqId},'${safeProjName}',this)">🔄 Re-analisar</button>
+      </div>
+      <div id="ep-prompts-body-${nqId}" style="display:none;padding:6px 12px 10px">
+        ${epEnvironments.length ? `<div style="font-size:.68rem;color:#7c3aed;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em">▪ Ambientes</div>${envsHtml}` : ''}
+        ${epNewElements.length  ? `<div style="font-size:.68rem;color:#22d3ee;font-weight:700;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em">▪ Elementos Novos</div>${elemsHtml}` : ''}
+        <div id="ep-prompts-status-${nqId}" style="font-size:.72rem;color:#6fcf6f;padding-top:6px"></div>
+      </div>
+    </div>`;
+  }
+
+  // ── Painel Personagens & Figurantes ─────────────────────────────────
+  const epChars = new Set(nq.characters || []);
+  const epFigs  = new Set(nq.figurantes  || []);
+  // Pré-marcar também o que a IA já usou nos ref_imgs das cenas
+  for (const j of jobs) {
+    const refs = Array.isArray(j.ref_imgs) ? j.ref_imgs : (j.ref_imgs ? [j.ref_imgs] : []);
+    for (const r of refs) {
+      if (projImagens.includes(r))    epChars.add(r);
+      if (projFigurantes.includes(r)) epFigs.add(r);
+    }
+  }
+
+  let charsHtml = '';
+  if (projImagens.length || projFigurantes.length) {
+    function buildCharThumb(path, selected, group) {
+      const fname = path.split('/').pop().replace(/\.[^.]+$/, '');
+      const border = selected ? '2px solid #7c3aed' : '1px solid #1a1a2a';
+      const opacity = selected ? '1' : '0.45';
+      return `<div style="position:relative;flex-shrink:0;cursor:pointer" onclick="toggleEpChar(this,'${path}','${group}','${nqId}')" title="${path}">
+        <img src="/file/${path}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:${border};opacity:${opacity};transition:all .15s;display:block">
+        <div style="font-size:.58rem;color:#888;text-align:center;max-width:60px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px">${esc(fname)}</div>
+        ${selected ? '<div style="position:absolute;top:2px;right:2px;background:#7c3aed;border-radius:50%;width:12px;height:12px;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff">✓</div>' : ''}
+      </div>`;
+    }
+
+    const charThumbs = projImagens.map(p => buildCharThumb(p, epChars.has(p), 'chars')).join('');
+    const figThumbs  = projFigurantes.map(p => buildCharThumb(p, epFigs.has(p), 'figs')).join('');
+
+    charsHtml = `
+    <div id="ep-chars-panel-${nqId}" style="border-bottom:1px solid #1a1a2a;background:#07070e">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;user-select:none" onclick="toggleEpCharsPanel(${nqId})">
+        <span style="font-size:.8rem;color:#f59e0b;font-weight:700">👥 Personagens &amp; Figurantes</span>
+        <span style="font-size:.72rem;color:#555">(${[...epChars].length} selecionado(s))</span>
+        <span id="ep-chars-chevron-${nqId}" style="margin-left:auto;color:#555;font-size:.8rem">▾</span>
+        <button class="nq-action-btn" style="font-size:.72rem;padding:2px 10px"
+          onclick="event.stopPropagation();analyseEpCharacters(${nqId},'${safeProjName}',this)" title="IA identifica quais personagens aparecem neste episódio">🤖 IA Selecionar</button>
+        <button class="nq-action-btn run" style="font-size:.72rem;padding:2px 10px"
+          onclick="event.stopPropagation();saveEpChars(${nqId},this)">💾 Salvar</button>
+      </div>
+      <div id="ep-chars-body-${nqId}" style="display:none;padding:8px 12px 12px">
+        ${projImagens.length ? `
+          <div style="font-size:.68rem;color:#f59e0b;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">▪ Personagens</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px" id="ep-chars-imgs-${nqId}">${charThumbs}</div>` : ''}
+        ${projFigurantes.length ? `
+          <div style="font-size:.68rem;color:#fb923c;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">▪ Figurantes</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px" id="ep-chars-figs-${nqId}">${figThumbs}</div>` : ''}
+        <div style="font-size:.7rem;color:#555;margin-top:8px">Clique para selecionar/desmarcar · ✓ roxo = selecionado</div>
+        <div id="ep-chars-status-${nqId}" style="font-size:.72rem;color:#6fcf6f;margin-top:4px"></div>
+      </div>
+    </div>`;
+  }
+
+  // ── Painel de descrição ──────────────────────────────────────────────
+  const epDesc = nq.description || '';
+  const descShort = epDesc.length > 160 ? epDesc.slice(0, 160).trimEnd() + '…' : epDesc;
+  const descHtml = `
+    <div id="ep-desc-panel-${nqId}" style="border-bottom:1px solid #1a1a2a;background:#080810">
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 12px;cursor:pointer" onclick="toggleEpDescPanel(${nqId})">
+        <div style="flex:1;min-width:0">
+          ${epDesc
+            ? `<div id="ep-desc-short-${nqId}" style="font-size:.78rem;color:#bbb;line-height:1.5;white-space:pre-wrap">${esc(descShort)}</div>`
+            : `<div style="font-size:.75rem;color:#444;font-style:italic">Nenhuma descrição — clique para adicionar</div>`}
+        </div>
+        <span id="ep-desc-chev-${nqId}" style="color:#444;font-size:.75rem;flex-shrink:0;padding-top:2px">✏️</span>
+      </div>
+      <div id="ep-desc-edit-${nqId}" style="display:none;padding:0 12px 10px">
+        <textarea id="ep-desc-ta-${nqId}" class="proj-config-input" rows="6" style="font-size:.8rem;resize:vertical;margin-bottom:6px">${esc(epDesc)}</textarea>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="nq-action-btn run" style="font-size:.72rem;padding:3px 12px"
+            onclick="saveEpDescription(${nqId},this)">💾 Salvar</button>
+          <button class="nq-action-btn" style="font-size:.72rem;padding:3px 12px;border-color:#7c3aed;color:#a78bfa"
+            id="ep-regen-btn-${nqId}"
+            onclick="regenEpPrompts(${nqId},'${safeProjName}',this)">🔄 Refazer Episódio</button>
+          <button class="nq-action-btn" style="font-size:.72rem;padding:3px 8px;margin-left:auto"
+            onclick="toggleEpDescPanel(${nqId})">✕</button>
+        </div>
+        <div id="ep-regen-status-${nqId}" style="font-size:.72rem;color:#6fcf6f;margin-top:6px"></div>
+      </div>
+    </div>`;
+
   detail.innerHTML = `
     <div class="proj-detail-header">
       <button class="nq-action-btn" onclick="loadProjectDetail('${safeProjName}')">\u2190 Projeto</button>
       <span class="proj-detail-name">${nq.name}</span>
       <button class="nq-action-btn" onclick="openEpisodeInFila(${nqId})" title="Gerenciar na aba Fila">\uD83D\uDD17 Fila</button>
     </div>
-    <div style="display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid #1a1a2a;flex-wrap:wrap">
-      <button class="proj-ep-btn" onclick="epGenImages(${nqId},'${safeProjName}',this)" title="Gerar imagens via fal.ai">\uD83D\uDDBC Imagens</button>
+    ${descHtml}
+    <div style="display:flex;gap:5px;padding:8px 12px;border-bottom:1px solid #1a1a2a;flex-wrap:wrap;align-items:center">
+      <button class="proj-ep-btn run" style="font-size:.8rem;padding:4px 14px;border-color:#7c3aed;color:#c4b5fd;background:#1a0a2e"
+        onclick="epGenAll(${nqId},'${safeProjName}',this)" title="Gerar imagens + áudios + vídeos em sequência">⚡ Gerar Tudo</button>
+      <span style="color:#2a2a3a;font-size:.8rem">|</span>
+      <button class="proj-ep-btn" onclick="epGenImages(${nqId},'${safeProjName}',this)" title="Gerar imagens das cenas via IA">\uD83D\uDDBC Imagens</button>
       <button class="proj-ep-btn" onclick="epGenAudio(${nqId},'${safeProjName}',this)" title="Gerar \xE1udios via ElevenLabs">\uD83C\uDFB5 \xC1udios</button>
-      <button class="proj-ep-btn" style="opacity:.5;cursor:not-allowed" title="Em breve">\uD83C\uDFB6 M\xFAsica</button>
+      <input type="file" id="ep-trilha-input-${nqId}" style="display:none" accept="audio/*" multiple onchange="uploadEpTrilha(${nqId},this)">
+      <button class="proj-ep-btn" onclick="document.getElementById('ep-trilha-input-${nqId}').click()" title="Upload de trilha sonora para o epis\xF3dio">\uD83C\uDFB6 Trilha</button>
       <button class="proj-ep-btn run" onclick="runEpisode(${nqId},'${safeProjName}')" title="Gerar v\xEDdeos (rodar fila)">\uD83C\uDFAC V\xEDdeos</button>
+      <span style="color:#2a2a3a;font-size:.8rem">|</span>
       <button class="proj-ep-btn" onclick="openEpisodeGallery(${nqId})" id="ep-gallery-btn-${nqId}" title="Ver assets gerados">\uD83D\uDDC2 Galeria</button>
+      <button class="proj-ep-btn" onclick="openAddEpSceneForm(${nqId},'${safeProjName}')" title="Adicionar nova cena ao epis\xF3dio" style="border-color:#22c55e;color:#86efac">+ Cena</button>
     </div>
+    ${promptsHtml}
+    ${charsHtml}
     <div id="ep-gallery-${nqId}" style="display:none;border-bottom:1px solid #1a1a2a;background:#07070d;padding:10px 14px"></div>
     <div class="ep-detail-jobs">${jobsHtml}</div>`;
 }
@@ -3373,6 +3709,423 @@ async function deleteEpJob(nqId, jobId, projectName) {
   if (!confirm('Remover esta cena do episódio?')) return;
   const res = await fetch(`/nqueues/${nqId}/jobs/${jobId}`, {method:'DELETE'});
   if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao remover'); return; }
+  await openEpisodeDetail(nqId, projectName);
+}
+
+async function quickAnalyseEp(nqId, projectName, btn) {
+  // Inicia análise a partir do card de episódio (sem abrir detalhe)
+  btn.disabled = true; btn.textContent = '⏳…';
+  try {
+    const res  = await fetch(`/nqueues/${nqId}/analyze-environments`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro'); btn.disabled = false; btn.textContent = '🔍 IA'; return; }
+    const ajId = data.analyse_job_id;
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${ajId}`);
+        const sd = await sr.json();
+        if (sd.status === 'done') {
+          clearInterval(timer);
+          // Substitui o botão por ícone verde e recarrega a lista de eps
+          btn.replaceWith(Object.assign(document.createElement('span'), {
+            title: 'Ambientes e elementos mapeados',
+            textContent: '🌍',
+            style: 'font-size:.68rem;color:#6fcf6f;flex-shrink:0'
+          }));
+          // Se o detalhe do projeto está aberto, recarregar
+          if (typeof _currentProject !== 'undefined' && _currentProject) {
+            loadProjectDetail(_currentProject);
+          }
+        } else if (sd.status === 'error') {
+          clearInterval(timer);
+          alert('Erro: ' + sd.error);
+          btn.disabled = false; btn.textContent = '🔍 IA';
+        }
+      } catch(e2) { /* rede */ }
+    }, 2000);
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.disabled = false; btn.textContent = '🔍 IA';
+  }
+}
+
+async function analyseEpEnvironments(nqId, projectName, btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳ Analisando…';
+  const statusEl = document.getElementById(`ep-analyse-status-${nqId}`);
+  try {
+    const res  = await fetch(`/nqueues/${nqId}/analyze-environments`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro ao analisar'); btn.disabled = false; btn.textContent = '🔍 Analisar com IA'; return; }
+    const ajId = data.analyse_job_id;
+    if (statusEl) statusEl.textContent = 'Aguardando Claude…';
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${ajId}`);
+        const sd = await sr.json();
+        if (statusEl) statusEl.textContent = sd.phase_msg || '';
+        if (sd.status === 'done' || sd.status === 'error') {
+          clearInterval(timer);
+          if (sd.status === 'error') {
+            alert('Erro: ' + sd.error);
+            btn.disabled = false; btn.textContent = '🔍 Analisar com IA';
+          } else {
+            // Recarrega o detalhe do episódio com os novos dados
+            await openEpisodeDetail(nqId, projectName);
+          }
+        }
+      } catch(e2) { /* rede */ }
+    }, 2000);
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.disabled = false; btn.textContent = '🔍 Analisar com IA';
+  }
+}
+
+function toggleEpCharsPanel(nqId) {
+  const body = document.getElementById(`ep-chars-body-${nqId}`);
+  const chev = document.getElementById(`ep-chars-chevron-${nqId}`);
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if (chev) chev.textContent = open ? '▴' : '▾';
+}
+
+function toggleEpChar(el, path, group, nqId) {
+  // el = o div container do thumb
+  const img     = el.querySelector('img');
+  const check   = el.querySelector('div[style*="position:absolute"]');
+  const isOn    = img.style.opacity === '1';
+  img.style.opacity = isOn ? '0.45' : '1';
+  img.style.border  = isOn ? '1px solid #1a1a2a' : '2px solid #7c3aed';
+  if (isOn && check)  { check.remove(); }
+  if (!isOn) {
+    const dot = document.createElement('div');
+    dot.style.cssText = 'position:absolute;top:2px;right:2px;background:#7c3aed;border-radius:50%;width:12px;height:12px;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff';
+    dot.textContent = '✓';
+    el.appendChild(dot);
+  }
+}
+
+async function saveEpChars(nqId, btn) {
+  // Coleta seleção atual dos dois grupos
+  const chars = [], figs = [];
+  document.querySelectorAll(`#ep-chars-imgs-${nqId} > div`).forEach(el => {
+    const img = el.querySelector('img');
+    if (img && img.style.opacity === '1') {
+      chars.push(el.title);
+    }
+  });
+  document.querySelectorAll(`#ep-chars-figs-${nqId} > div`).forEach(el => {
+    const img = el.querySelector('img');
+    if (img && img.style.opacity === '1') {
+      figs.push(el.title);
+    }
+  });
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳…';
+  const res = await fetch(`/nqueues/${nqId}/characters`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ characters: chars, figurantes: figs })
+  });
+  btn.disabled = false;
+  if (!res.ok) { btn.textContent = orig; alert('Erro ao salvar'); return; }
+  btn.textContent = '✓ Salvo';
+  const st = document.getElementById(`ep-chars-status-${nqId}`);
+  if (st) st.textContent = `${chars.length} personagem(ns) · ${figs.length} figurante(s) salvos`;
+  setTimeout(() => { btn.textContent = orig; }, 2000);
+}
+
+async function analyseEpCharacters(nqId, projectName, btn) {
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ IA…';
+  const st = document.getElementById(`ep-chars-status-${nqId}`);
+  try {
+    const res  = await fetch(`/nqueues/${nqId}/analyze-characters`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro'); btn.disabled = false; btn.textContent = orig; return; }
+    const ajId = data.analyse_job_id;
+    if (st) st.textContent = 'Analisando…';
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${ajId}`);
+        const sd = await sr.json();
+        if (sd.status === 'done') {
+          clearInterval(timer);
+          btn.disabled = false; btn.textContent = orig;
+          // Recarrega para mostrar nova seleção
+          await openEpisodeDetail(nqId, projectName);
+        } else if (sd.status === 'error') {
+          clearInterval(timer);
+          alert('Erro: ' + sd.error);
+          btn.disabled = false; btn.textContent = orig;
+          if (st) st.textContent = '';
+        } else {
+          if (st) st.textContent = sd.phase_msg || 'Analisando…';
+        }
+      } catch(e2) { /* rede */ }
+    }, 2000);
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+function toggleEpDescPanel(nqId) {
+  const edit = document.getElementById(`ep-desc-edit-${nqId}`);
+  const chev = document.getElementById(`ep-desc-chev-${nqId}`);
+  if (!edit) return;
+  const open = edit.style.display === 'none';
+  edit.style.display = open ? 'block' : 'none';
+  if (chev) chev.textContent = open ? '▴ ✏️' : '✏️';
+}
+
+async function saveEpDescription(nqId, btn) {
+  const text = document.getElementById(`ep-desc-ta-${nqId}`)?.value || '';
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳…';
+  try {
+    const res = await fetch(`/nqueues/${nqId}/description`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ description: text })
+    });
+    btn.disabled = false;
+    if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao salvar'); btn.textContent = orig; return; }
+    const shortEl = document.getElementById(`ep-desc-short-${nqId}`);
+    const descShort = text.length > 160 ? text.slice(0, 160).trimEnd() + '…' : text;
+    if (shortEl) shortEl.textContent = descShort;
+    btn.textContent = '✓ Salvo';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = orig; alert('Erro: ' + e);
+  }
+}
+
+async function regenEpPrompts(nqId, projectName, btn) {
+  if (!confirm('Isso vai regenerar todos os prompts das cenas com base na descrição atual. Continuar?')) return;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Gerando…';
+  const statusEl = document.getElementById(`ep-regen-status-${nqId}`);
+  if (statusEl) statusEl.textContent = 'Iniciando regeneração…';
+  try {
+    const res = await fetch(`/nqueues/${nqId}/regenerate-prompts`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro ao regenerar'); btn.disabled = false; btn.textContent = orig; return; }
+    const jobId = data.regen_job_id;
+    if (statusEl) statusEl.textContent = 'Claude gerando prompts…';
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${jobId}`);
+        const sd = await sr.json();
+        if (statusEl) statusEl.textContent = sd.phase_msg || 'Processando…';
+        if (sd.status === 'done') {
+          clearInterval(timer);
+          btn.disabled = false; btn.textContent = orig;
+          if (statusEl) statusEl.textContent = '✓ Episódio regenerado!';
+          setTimeout(async () => { await openEpisodeDetail(nqId, projectName); }, 1000);
+        } else if (sd.status === 'error') {
+          clearInterval(timer);
+          btn.disabled = false; btn.textContent = orig;
+          if (statusEl) statusEl.textContent = '✗ Erro: ' + (sd.error || 'desconhecido');
+        }
+      } catch(e2) { /* rede */ }
+    }, 3000);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = orig; alert('Erro: ' + e);
+  }
+}
+
+function toggleEpPromptsPanel(nqId) {
+  const body = document.getElementById(`ep-prompts-body-${nqId}`);
+  const chev = document.getElementById(`ep-prompts-chevron-${nqId}`);
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if (chev) chev.textContent = open ? '▴' : '▾';
+}
+
+function togglePromptItem(editId) {
+  const el = document.getElementById(editId);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function savePromptItem(nqId, apiType, idx, rowId, btn) {
+  const name     = document.getElementById(`${rowId}-name`)?.value || '';
+  const prompt   = document.getElementById(`${rowId}-prompt`)?.value || '';
+  const ref      = document.getElementById(`${rowId}-ref`)?.value.trim() || '';
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳…';
+  // apiType é 'environments' ou 'new-elements' para a URL
+  // mas o campo no JSON é 'environments' ou 'new_elements'
+  const payload = { name, image_prompt: prompt };
+  if (ref) payload.existing_ref = ref;
+  try {
+    const res = await fetch(`/nqueues/${nqId}/${apiType}/${idx}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao salvar'); }
+    else {
+      btn.textContent = '✓ Salvo';
+      // Atualiza o texto resumido visível
+      const parentRow = document.getElementById(`pi-${nqId}-${apiType.replace('-','_')}-${idx}`);
+      if (!parentRow) {
+        // fallback: try both formats
+      }
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+    }
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.textContent = orig; btn.disabled = false;
+  }
+}
+
+async function genPromptImage(nqId, itemType, idx, btn) {
+  // itemType: 'environments' | 'new-elements'
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳…';
+  try {
+    const res = await fetch(`/nqueues/${nqId}/${itemType}/${idx}/generate-image`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro ao gerar imagem'); return; }
+    // Atualiza thumb ao lado do botão
+    const row = btn.closest('div[style*="display:flex"]');
+    if (row && data.path) {
+      const thumb = row.querySelector('img, div[style*="sem img"]');
+      if (thumb) {
+        const img = document.createElement('img');
+        img.src = `/file/${data.path}?t=${Date.now()}`;
+        img.style.cssText = 'width:64px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #2a2a3a;flex-shrink:0';
+        thumb.replaceWith(img);
+      }
+    }
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.textContent = orig; btn.disabled = false;
+  }
+}
+
+async function genAllPromptImages(nqId, btn) {
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Gerando…';
+  const statusEl = document.getElementById(`ep-prompts-status-${nqId}`);
+  try {
+    const res = await fetch(`/nqueues/${nqId}/generate-all-prompt-images`, {method:'POST'});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro'); btn.textContent = orig; btn.disabled = false; return; }
+    const total = data.total || 0;
+    if (total === 0) { btn.textContent = orig; btn.disabled = false; return; }
+    const bulkId = data.bulk_job_id;
+    if (statusEl) statusEl.textContent = `0/${total} gerado(s)…`;
+    // Poll
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${bulkId}`);
+        const sd = await sr.json();
+        if (statusEl) statusEl.textContent = `${sd.done || 0}/${sd.total || total} gerado(s)`;
+        if (sd.status === 'done') {
+          clearInterval(timer);
+          btn.textContent = orig; btn.disabled = false;
+          if (statusEl) statusEl.textContent = `✓ ${sd.done} imagem(ns) gerada(s)` + (sd.errors?.length ? ` · ${sd.errors.length} erro(s)` : '');
+          // Recarregar painel para mostrar thumbs atualizados
+          const projName = document.querySelector('.proj-detail-name')?.textContent || '';
+          await openEpisodeDetail(nqId, projName);
+        }
+      } catch(e2) { /* rede */ }
+    }, 3000);
+  } catch(e) {
+    alert('Erro: ' + e);
+    btn.textContent = orig; btn.disabled = false;
+  }
+}
+
+async function uploadEpTrilha(nqId, input) {
+  if (!input.files.length) return;
+  const form = new FormData();
+  for (const f of input.files) form.append('files', f);
+  const res = await fetch(`/nqueues/${nqId}/upload/trilha`, {method:'POST', body:form});
+  input.value = '';
+  if (!res.ok) { alert('Erro no upload da trilha'); return; }
+  const d = await res.json();
+  alert(`✓ ${d.uploaded.length} arquivo(s) enviado(s) para trilha do episódio.`);
+  const galleryPanel = document.getElementById(`ep-gallery-${nqId}`);
+  if (galleryPanel && galleryPanel.style.display !== 'none') openEpisodeGallery(nqId);
+}
+
+function openAddEpSceneForm(nqId, projectName) {
+  const jobsDiv = document.querySelector('.ep-detail-jobs');
+  if (!jobsDiv) return;
+  if (document.getElementById('ep-new-scene-form')) return;
+  const safeProjName = projectName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const form = document.createElement('div');
+  form.id = 'ep-new-scene-form';
+  form.style.cssText = 'padding:12px 14px;background:#0d0d1a;border:1px solid #3730a3;border-radius:8px;margin-bottom:10px';
+  form.innerHTML = `
+    <div style="font-size:.85rem;color:#c4b5fd;font-weight:600;margin-bottom:10px">+ Nova Cena</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div class="proj-config-label">Título da cena</div>
+        <input class="proj-config-input" id="new-scene-label" placeholder="Ex: Cena 01 — Abertura">
+      </div>
+      <div style="display:flex;gap:6px">
+        <div style="flex:1">
+          <div class="proj-config-label">Resolução</div>
+          <select class="proj-config-input" id="new-scene-res">
+            <option>480P</option><option selected>540P</option><option>720P</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <div class="proj-config-label">Duração (s)</div>
+          <input type="number" class="proj-config-input" id="new-scene-dur" value="5" min="1" max="30">
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div class="proj-config-label">Prompt de vídeo (EN)</div>
+      <textarea class="proj-config-input" id="new-scene-prompt" rows="2" placeholder="Describe the scene in English..."></textarea>
+    </div>
+    <div style="margin-bottom:8px">
+      <div class="proj-config-label">Narração / Diálogo (PT-BR) — opcional</div>
+      <textarea class="proj-config-input" id="new-scene-audio-text" rows="2" placeholder="Texto da narração ou diálogo..."></textarea>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="proj-config-label">Imagens de referência (paths separados por vírgula)</div>
+      <input class="proj-config-input" id="new-scene-refs" placeholder="projetos/PROJ/imagens/cena.png">
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="nq-action-btn run" onclick="submitNewEpScene(${nqId},'${safeProjName}')">💾 Adicionar</button>
+      <button class="nq-action-btn" onclick="document.getElementById('ep-new-scene-form').remove()">Cancelar</button>
+    </div>`;
+  jobsDiv.insertBefore(form, jobsDiv.firstChild);
+}
+
+async function submitNewEpScene(nqId, projectName) {
+  const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  const label     = g('new-scene-label') || 'Nova Cena';
+  const prompt    = g('new-scene-prompt');
+  const audioText = g('new-scene-audio-text');
+  const refsStr   = g('new-scene-refs');
+  const refs      = refsStr ? refsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const payload   = {
+    task_type: 'reference_to_video',
+    label,
+    prompt,
+    resolution: g('new-scene-res') || '540P',
+    duration:   Number(g('new-scene-dur')) || 5,
+    num_inference_steps: 4,
+    seed: 42,
+    ref_imgs: refs,
+  };
+  if (audioText) payload.audio_text = audioText;
+  const res = await fetch(`/nqueues/${nqId}/jobs`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao adicionar cena'); return; }
+  document.getElementById('ep-new-scene-form')?.remove();
   await openEpisodeDetail(nqId, projectName);
 }
 
@@ -3430,7 +4183,20 @@ async function openEpisodeGallery(nqId) {
     html += '</div></div>';
   }
 
-  if (!g.images?.length && !g.audios?.length && !g.videos?.length) {
+  if (g.trilhas && g.trilhas.length) {
+    html += `<div style="margin-bottom:10px"><div style="color:#7c7caa;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">\uD83C\uDFB6 Trilha (${g.trilhas.length})</div>
+    <div style="display:flex;flex-direction:column;gap:4px">`;
+    for (const p of g.trilhas) {
+      const name = p.split('/').pop();
+      html += `<div style="display:flex;align-items:center;gap:8px;background:#0d0d1a;border-radius:4px;padding:4px 8px">
+        <span style="color:#888;font-size:.75rem;min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</span>
+        <audio controls src="/file/${encodeURIComponent(p)}" style="height:26px;flex:1;min-width:0"></audio>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  if (!g.images?.length && !g.audios?.length && !g.trilhas?.length && !g.videos?.length) {
     html = '<span style="color:#444;font-size:.8rem">Nenhum asset gerado ainda. Use os bot\xF5es acima para gerar imagens e \xE1udios.</span>';
   }
 
@@ -3516,14 +4282,25 @@ async function importEpisodeFile(projectName, input) {
 
 // ── Global Config Modal ─────────────────────────────────────
 
+function toggleImageProviderFields() {
+  const model = document.getElementById('gcfg-image-model')?.value || '';
+  const isKie = model === 'kie-ai/nano-banana-2';
+  document.getElementById('gcfg-fal-fields').style.display = isKie ? 'none' : '';
+  document.getElementById('gcfg-kie-fields').style.display = isKie ? '' : 'none';
+}
+
 async function openGlobalConfigModal() {
   const res = await fetch('/config');
   const cfg = res.ok ? await res.json() : {};
   _projConfig = cfg;
-  document.getElementById('gcfg-fal-key').value    = cfg.fal_key || '';
-  document.getElementById('gcfg-image-model').value = cfg.image_model || 'fal-ai/flux/dev';
-  document.getElementById('gcfg-el-key').value     = cfg.elevenlabs_key || '';
-  document.getElementById('gcfg-el-voice').value   = cfg.elevenlabs_voice_id || '';
+  document.getElementById('gcfg-fal-key').value     = cfg.fal_key || '';
+  document.getElementById('gcfg-kie-key').value     = cfg.kie_api_key || '';
+  document.getElementById('gcfg-kie-style').value   = cfg.kie_image_style || 'anime';
+  document.getElementById('gcfg-server-host').value = cfg.server_host || '192.168.1.91';
+  document.getElementById('gcfg-image-model').value = cfg.image_model || 'fal-ai/nano-banana';
+  document.getElementById('gcfg-el-key').value      = cfg.elevenlabs_key || '';
+  document.getElementById('gcfg-el-voice').value    = cfg.elevenlabs_voice_id || '';
+  toggleImageProviderFields();
   document.getElementById('global-config-modal').style.display = 'flex';
 }
 
@@ -3534,7 +4311,10 @@ function closeGlobalConfigModal() {
 async function saveGlobalConfig() {
   const cfg = {
     fal_key:             document.getElementById('gcfg-fal-key').value.trim(),
-    image_model:         document.getElementById('gcfg-image-model').value.trim() || 'fal-ai/flux/dev',
+    kie_api_key:         document.getElementById('gcfg-kie-key').value.trim(),
+    kie_image_style:     document.getElementById('gcfg-kie-style').value || 'anime',
+    server_host:         document.getElementById('gcfg-server-host').value.trim() || '192.168.1.91',
+    image_model:         document.getElementById('gcfg-image-model').value || 'fal-ai/nano-banana',
     elevenlabs_key:      document.getElementById('gcfg-el-key').value.trim(),
     elevenlabs_voice_id: document.getElementById('gcfg-el-voice').value.trim(),
   };
@@ -3553,11 +4333,15 @@ async function saveGlobalConfig() {
 
 // ── Gen Episode Modal ────────────────────────────────────────
 
-let _genEpisodeProject = null;
-let _genEpisodeTitle   = null;
-let _genJobId          = null;
-let _genPollTimer      = null;
-let _genJobs = [];
+let _genEpisodeProject     = null;
+let _genEpisodeTitle       = null;
+let _genEpisodeDescription = '';
+let _genJobId              = null;
+let _genPollTimer          = null;
+let _genJobs               = [];
+let _genEnvironments       = [];
+let _genNewElements        = [];
+let _genEpCode             = null;
 let _projConfig = {};
 
 function _showGenStep(n) {
@@ -3840,7 +4624,8 @@ async function generateEpisodePrompts() {
   const doc_title = (document.getElementById('gen-ep-title')?.value || '').trim();
   if (!doc_title) { alert('Informe o t\xEDtulo do epis\xF3dio'); return; }
 
-  _genEpisodeTitle = doc_title;
+  _genEpisodeTitle       = doc_title;
+  _genEpisodeDescription = description;
 
   // Imagens selecionadas — se nenhuma marcada, envia [] e o backend usa todas do projeto
   const allImgBoxes = Array.from(document.querySelectorAll('input[name="gen-ref-img"]'));
@@ -3915,22 +4700,23 @@ function _startGenPoll(projName, jobId) {
         if (spinner) spinner.classList.remove('active');
         if (genBtn)  genBtn.disabled = false;
         _clearGenStatusMsg();
-        _genJobs = data.jobs;
+        _genJobs         = data.jobs;
+        _genEnvironments = data.environments || [];
+        _genNewElements  = data.new_elements || [];
+        _genEpCode       = data.ep_code || null;
         renderGenPreview();
         _showGenStep(2);
-        // Resumo de geração (doc salvo + novas referências criadas)
+        // Resumo de geração (doc salvo + ambientes + elementos)
         const sl = document.getElementById('gen-ep-scene-list');
-        if (sl && (data.saved_doc || (data.new_refs && data.new_refs.length))) {
+        if (sl && (data.saved_doc || _genEnvironments.length || _genNewElements.length)) {
           const info = document.createElement('div');
           info.style.cssText = 'font-size:.75rem;color:#6fcf6f;padding:4px 0 8px;line-height:1.6';
           let html = '';
           if (data.saved_doc) html += `✓ Descrição salva em ${data.saved_doc}<br>`;
-          if (data.environments && data.environments.length) {
-            html += `🗺 ${data.environments.length} ambiente(s) mapeado(s) · `;
-          }
-          if (data.new_refs && data.new_refs.length) {
-            html += `🖼 ${data.new_refs.length} referência(s) nova(s) gerada(s): `;
-            html += data.new_refs.map(r => `<span style="color:#a78bfa">${r.name}</span>`).join(', ');
+          if (_genEnvironments.length) html += `🗺 ${_genEnvironments.length} ambiente(s) identificado(s) · `;
+          if (_genNewElements.length) {
+            html += `🆕 ${_genNewElements.length} elemento(s) novo(s): `;
+            html += _genNewElements.map(r => `<span style="color:#a78bfa">${r.name}</span>`).join(', ');
           }
           info.innerHTML = html;
           sl.before(info);
@@ -4006,12 +4792,14 @@ function renderGenPreview() {
     container.appendChild(card);
   });
 
-  const hasFalKey = !!_projConfig.fal_key;
+  const model     = _projConfig.image_model || 'fal-ai/nano-banana';
+  const hasImgKey = model === 'kie-ai/nano-banana-2' ? !!_projConfig.kie_api_key : !!_projConfig.fal_key;
+  const imgProvLabel = model === 'kie-ai/nano-banana-2' ? 'kie.ai' : 'fal.ai';
   const hasElKey  = !!(_projConfig.elevenlabs_key && _projConfig.elevenlabs_voice_id);
   const imgBtn = document.getElementById('gen-ep-img-btn');
   const audBtn = document.getElementById('gen-ep-aud-btn');
-  imgBtn.disabled = !hasFalKey;
-  imgBtn.title    = hasFalKey ? 'Gerar imagens com fal.ai' : 'Configure FAL_KEY em \u2699 Configura\xE7\xF5es';
+  imgBtn.disabled = !hasImgKey;
+  imgBtn.title    = hasImgKey ? `Gerar imagens com ${imgProvLabel}` : `Configure a chave de ${imgProvLabel} em \u2699 Configura\xE7\xF5es`;
   audBtn.disabled = !hasElKey;
   audBtn.title    = hasElKey  ? 'Gerar \xE1udios com ElevenLabs' : 'Configure ElevenLabs em \u2699 Configura\xE7\xF5es';
 }
@@ -4090,9 +4878,18 @@ async function genEpisodeAudio() {
 
 async function createEpisodeFromGen() {
   const name = _genEpisodeTitle || `Ep \u2014 ${_genEpisodeProject} \u2014 ${new Date().toLocaleDateString('pt-BR')}`;
+  const body = {
+    name,
+    project: _genEpisodeProject,
+    jobs: _genJobs,
+  };
+  if (_genEpCode)              body.ep_code      = _genEpCode;
+  if (_genEnvironments.length) body.environments  = _genEnvironments;
+  if (_genNewElements.length)  body.new_elements  = _genNewElements;
+  if (_genEpisodeDescription)  body.description   = _genEpisodeDescription;
   const res = await fetch('/nqueues', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ name, project: _genEpisodeProject, jobs: _genJobs })
+    body: JSON.stringify(body)
   });
   const data = await res.json();
   if (!res.ok) { alert(data.error || 'Erro ao criar epis\xF3dio'); return; }
@@ -4179,13 +4976,43 @@ refreshNamedQueues();
     </div>
     <div class="modal-body">
       <div style="font-size:.78rem;color:#666;margin-bottom:4px">Configurações globais — valem para todos os projetos.</div>
-      <label style="font-size:.78rem;color:#888">FAL_KEY <span style="color:#555">(fal.ai — geração de imagens)</span>
-        <input id="gcfg-fal-key" type="password" class="modal-input" placeholder="key_xxxx..." style="margin-top:4px">
-      </label>
+      <div style="font-size:.72rem;color:#5a4a7a;font-weight:600;margin:8px 0 4px;border-top:1px solid #1a1a2a;padding-top:8px">🖼 Geração de Imagens</div>
       <label style="font-size:.78rem;color:#888">Modelo de imagem
-        <input id="gcfg-image-model" type="text" class="modal-input" placeholder="fal-ai/flux/dev" style="margin-top:4px">
+        <select id="gcfg-image-model" class="modal-input" style="margin-top:4px" onchange="toggleImageProviderFields()">
+          <option value="fal-ai/nano-banana">fal-ai/nano-banana — Gemini 2.5 Flash (padrão)</option>
+          <option value="fal-ai/flux/dev">fal-ai/flux/dev — Flux Dev</option>
+          <option value="fal-ai/gpt-image-1-mini/edit">fal-ai/gpt-image-1-mini/edit — GPT Image 1 Mini</option>
+          <option value="kie-ai/nano-banana-2">kie-ai/nano-banana-2 — Kie.ai (sem refs, enhancement)</option>
+        </select>
       </label>
-      <label style="font-size:.78rem;color:#888">ElevenLabs API Key <span style="color:#555">(geração de áudio / TTS)</span>
+      <div id="gcfg-fal-fields">
+        <label style="font-size:.78rem;color:#888">FAL_KEY <span style="color:#555">(fal.ai)</span>
+          <input id="gcfg-fal-key" type="password" class="modal-input" placeholder="key_xxxx..." style="margin-top:4px">
+        </label>
+      </div>
+      <div id="gcfg-kie-fields" style="display:none">
+        <label style="font-size:.78rem;color:#888">KIE_API_KEY <span style="color:#555">(kie.ai)</span>
+          <input id="gcfg-kie-key" type="password" class="modal-input" placeholder="Bearer token da kie.ai" style="margin-top:4px">
+        </label>
+        <label style="font-size:.78rem;color:#888;margin-top:6px;display:block">Estilo visual <span style="color:#555">(nano-banana-2 enhancement)</span>
+          <select id="gcfg-kie-style" class="modal-input" style="margin-top:4px">
+            <option value="anime">Anime — Studio Ghibli, soft colors</option>
+            <option value="photorealistic">Photorealistic — natural lighting, sharp</option>
+            <option value="cinematic">Cinematic — dramatic, teal & orange</option>
+            <option value="illustration">Illustration — digital art, vibrant</option>
+            <option value="3d_render">3D Render — PBR, octane quality</option>
+            <option value="concept_art">Concept Art — matte painting</option>
+            <option value="watercolor">Watercolor — soft washes, brush strokes</option>
+            <option value="product">Product Shot — studio, commercial</option>
+          </select>
+        </label>
+        <label style="font-size:.78rem;color:#888;margin-top:6px;display:block">IP/host do servidor <span style="color:#555">(para kie.ai acessar imagens locais)</span>
+          <input id="gcfg-server-host" type="text" class="modal-input" placeholder="ex: 192.168.1.91" style="margin-top:4px">
+          <div style="font-size:.7rem;color:#555;margin-top:2px">Use o IP da máquina na rede — kie.ai precisa acessar as imagens de referência via HTTP.</div>
+        </label>
+      </div>
+      <div style="font-size:.72rem;color:#5a4a7a;font-weight:600;margin:8px 0 4px;border-top:1px solid #1a1a2a;padding-top:8px">🎵 Geração de Áudio</div>
+      <label style="font-size:.78rem;color:#888">ElevenLabs API Key <span style="color:#555">(TTS)</span>
         <input id="gcfg-el-key" type="password" class="modal-input" placeholder="sk_xxxx..." style="margin-top:4px">
       </label>
       <label style="font-size:.78rem;color:#888">ElevenLabs Voice ID
