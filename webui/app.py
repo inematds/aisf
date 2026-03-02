@@ -311,6 +311,26 @@ def _load_global_config():
             pass
     return {}
 
+
+def _load_effective_cfg(proj_name: str | None = None, nq_image_style: str | None = None) -> dict:
+    """Global config merged with project-level then NQ-level overrides (image_style → kie_image_style)."""
+    cfg = _load_global_config()
+    if proj_name:
+        proj_cfg_file = PROJECTS_DIR / proj_name / "config.json"
+        if proj_cfg_file.exists():
+            try:
+                proj_cfg = json.loads(proj_cfg_file.read_text())
+                if proj_cfg.get("image_style"):
+                    cfg = dict(cfg)
+                    cfg["kie_image_style"] = proj_cfg["image_style"]
+            except Exception:
+                pass
+    if nq_image_style:
+        cfg = dict(cfg)
+        cfg["kie_image_style"] = nq_image_style
+    return cfg
+
+
 app = Flask(__name__)
 
 # ---- Global generation state ----
@@ -576,6 +596,8 @@ def build_cmd_from_job(job):
         ref_imgs = job.get("ref_imgs", [])
         if isinstance(ref_imgs, str):
             ref_imgs = [r.strip() for r in ref_imgs.split(",") if r.strip()]
+        # Filtra refs que não existem em disco — evita crash no generate_video.py
+        ref_imgs = [r for r in ref_imgs if r and Path(r).exists()]
         ref_imgs = ref_imgs[:4]  # pipeline limita a 4 imagens (MAX_ALLOWED_REF_IMG_LENGTH)
         if ref_imgs:
             cmd += ["--ref_imgs", ",".join(ref_imgs)]
@@ -638,6 +660,38 @@ def start_next_queued_job():
                     with nq_lock:
                         nq = next((q for q in named_queues if q["id"] == job["nq_id"]), None)
                 effective_job = _resolve_nq_refs(job, nq)
+                # Resolve refs quebradas de episódio usando generated_ref do NQ
+                if nq and effective_job.get("task_type") == "reference_to_video":
+                    raw = effective_job.get("ref_imgs") or []
+                    if isinstance(raw, str):
+                        raw = [r.strip() for r in raw.split(",") if r.strip()]
+                    ep_code = nq.get("ep_code", "")
+                    proj_name = nq.get("project", "")
+                    ep_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code if proj_name and ep_code else None
+                    import unicodedata as _ud
+                    ep_ref_map = {}
+                    for it in nq.get("environments", []) + nq.get("new_elements", []):
+                        g = it.get("generated_ref")
+                        if g and Path(g).exists():
+                            ep_ref_map[Path(g).stem.lower()] = g
+                    def _res(r):
+                        if not r or Path(r).exists(): return r
+                        if "episodios" not in r: return r
+                        def _norm(s):
+                            s = _ud.normalize("NFD", s.lower())
+                            s = "".join(c for c in s if _ud.category(c) != "Mn")
+                            return set(t for t in re.sub(r"[^a-z0-9]", " ", s).split() if len(t) >= 3)
+                        toks = _norm(Path(r).stem)
+                        best, bs = None, 0
+                        for stem, path in ep_ref_map.items():
+                            sc = len(toks & _norm(stem))
+                            if sc > bs: bs = sc; best = path
+                        if best and bs >= 1:
+                            print(f"[run-resolve] '{Path(r).name}' → '{Path(best).name}'")
+                            return best
+                        return r if ep_dir is None else _resolve_ep_ref(r, ep_dir)
+                    effective_job = dict(effective_job)
+                    effective_job["ref_imgs"] = [_res(r) for r in raw]
                 cmd, env_extra, metadata = build_cmd_from_job(effective_job)
                 thread = threading.Thread(
                     target=run_generation,
@@ -1475,7 +1529,7 @@ def patch_nq_job(nq_id, job_id):
             return jsonify({"error": "Cena não encontrada"}), 404
         if job["status"] == "running":
             return jsonify({"error": "Cena não pode ser editada enquanto está rodando"}), 400
-        was_done = job["status"] == "done"
+        was_done_or_error = job["status"] in ("done", "error")
         for k, v in data.items():
             if k not in PROTECTED:
                 job[k] = v
@@ -1483,13 +1537,14 @@ def patch_nq_job(nq_id, job_id):
         AUDIO_ONLY = {"audio_bg", "audio_text", "voice_id", "input_audio"}
         edits = set(k for k in data if k not in PROTECTED)
         audio_only_edit = bool(edits) and edits.issubset(AUDIO_ONLY)
-        if was_done and not audio_only_edit:
+        if was_done_or_error and not audio_only_edit:
             job["status"] = "idle"
             job["output_video"] = ""
+            job["error"] = ""
             job["started_at"] = ""
             job["finished_at"] = ""
     _save_queues()
-    return jsonify({"ok": True, "reset": was_done})
+    return jsonify({"ok": True, "reset": was_done_or_error})
 
 
 @app.route("/nqueues/<int:nq_id>", methods=["DELETE"])
@@ -1539,13 +1594,83 @@ def nq_gallery(nq_id):
             if f.suffix.lower() in (".mp3", ".wav", ".ogg", ".m4a"):
                 result["trilhas"].append(str(f.relative_to(PROJECT_ROOT)))
 
-    # Vídeos gerados (output_video de cada job)
+    # Vídeos gerados (output_video de cada job) — inclui metadados para a galeria
     for j in nq.get("jobs", []):
         vid = j.get("output_video", "")
         if vid and (PROJECT_ROOT / vid).exists():
-            result["videos"].append(vid)
+            result["videos"].append({
+                "path": vid,
+                "job_id": j.get("id"),
+                "label": j.get("label", ""),
+                "refs": j.get("ref_imgs", []),
+            })
 
     return jsonify(result)
+
+
+@app.route("/nqueues/<int:nq_id>/available-refs")
+def nq_available_refs(nq_id):
+    """Lista imagens disponíveis para uso como ref, agrupadas por categoria."""
+    nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name = nq.get("project", "")
+    ep_code   = nq.get("ep_code", "")
+
+    IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+
+    def _list(folder: Path, category: str):
+        if not folder.exists():
+            return []
+        return [
+            {"path": str(f.relative_to(PROJECT_ROOT)), "name": f.name, "category": category}
+            for f in sorted(folder.iterdir())
+            if f.is_file() and f.suffix.lower() in IMAGE_EXTS
+        ]
+
+    result = {"imagens": [], "ambiente": [], "elementos": [], "projeto": []}
+
+    if proj_name and ep_code:
+        ep_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code
+        result["imagens"]   = _list(ep_dir / "imagens",   "imagens")
+        result["ambiente"]  = _list(ep_dir / "ambiente",  "ambiente")
+        result["elementos"] = _list(ep_dir / "elementos", "elementos")
+
+    if proj_name:
+        result["projeto"] = _list(PROJECTS_DIR / proj_name / "imagens",    "projeto")
+        result["figurantes"] = _list(PROJECTS_DIR / proj_name / "figurantes", "figurantes")
+
+    return jsonify(result)
+
+
+@app.route("/nqueues/<int:nq_id>/jobs/<int:job_id>/video", methods=["DELETE"])
+def delete_nq_job_video(nq_id, job_id):
+    """Deleta o arquivo de vídeo gerado e reseta o job para idle."""
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+        if nq is None:
+            return jsonify({"error": "Fila não encontrada"}), 404
+        job = next((j for j in nq["jobs"] if j["id"] == job_id), None)
+        if job is None:
+            return jsonify({"error": "Cena não encontrada"}), 404
+        if job["status"] == "running":
+            return jsonify({"error": "Não é possível deletar vídeo em execução"}), 400
+        vid = job.get("output_video", "")
+        if vid:
+            try:
+                vid_path = PROJECT_ROOT / vid
+                if vid_path.exists():
+                    vid_path.unlink()
+            except Exception:
+                pass
+        job["output_video"] = ""
+        job["status"] = "idle"
+        job["error"] = ""
+        job["started_at"] = ""
+        job["finished_at"] = ""
+    _save_queues()
+    return jsonify({"ok": True})
 
 
 @app.route("/nqueues/<int:nq_id>/upload/<subfolder>", methods=["POST"])
@@ -1603,18 +1728,29 @@ def _nq_gen_prompt_image(nq_id: int, item_type: str, idx: int):
     safe_name = re.sub(r'[^\w\-]', '_', item.get("name", "item")[:40])
     dest = img_dir / f"{safe_name}.png"
 
-    cfg = _load_global_config()
+    cfg = _load_effective_cfg(proj_name, nq.get("image_style"))
     img_prompt = item.get("image_prompt") or item.get("description") or item.get("name", "")
 
-    # Refs: existing_ref do item + personagens selecionados do episódio (até 3 slots)
+    # Refs: existing_ref + match por nome + personagens do episódio como referência de estilo
+    # Os personagens carregam o estilo visual do projeto (paleta, traço, arte) — essencial para consistência
     ref_paths = []
     existing = item.get("existing_ref") or item.get("generated_ref")
     if existing and (PROJECT_ROOT / existing).exists():
         ref_paths.append(existing)
-    # Adiciona personagens/figurantes selecionados como refs de consistência
+    # Match automático por nome do ambiente/elemento contra imagens do projeto
+    if proj_name and len(ref_paths) < 4:
+        item_name = item.get("name", "")
+        auto = _auto_match_refs(item_name, proj_name, exclude=ref_paths)
+        for a in auto:
+            if len(ref_paths) >= 4:
+                break
+            ref_paths.append(a)
+        if auto:
+            print(f"[auto_match] '{item_name}' → {auto}")
+    # Personagens/figurantes do episódio como refs de estilo visual
     ep_chars = list(nq.get("characters", [])) + list(nq.get("figurantes", []))
     for c in ep_chars:
-        if len(ref_paths) >= 3:
+        if len(ref_paths) >= 4:
             break
         if c not in ref_paths and (PROJECT_ROOT / c).exists():
             ref_paths.append(c)
@@ -1622,7 +1758,7 @@ def _nq_gen_prompt_image(nq_id: int, item_type: str, idx: int):
     try:
         result = _dispatch_image(cfg, img_prompt, ref_paths or None)
         url = result["images"][0]["url"]
-        urllib_req.urlretrieve(url, str(dest))
+        _download_image(url, dest)
         rel = str(dest.relative_to(PROJECT_ROOT))
         with nq_lock:
             nq[item_type][idx]["generated_ref"] = rel
@@ -1696,7 +1832,7 @@ def nq_gen_all_prompt_images(nq_id):
     _bulk_img_state[bulk_job_id] = bulk_state
 
     def _run():
-        cfg = _load_global_config()
+        cfg = _load_effective_cfg(proj_name)
         ep_chars = list(nq.get("characters", [])) + list(nq.get("figurantes", []))
         def _gen(item_type, items, subfolder):
             img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_code / subfolder
@@ -1709,15 +1845,21 @@ def nq_gen_all_prompt_images(nq_id):
                 existing = item.get("existing_ref") or item.get("generated_ref")
                 if existing and (PROJECT_ROOT / existing).exists():
                     ref_paths.append(existing)
+                # Match automático por nome contra imagens do projeto
+                if proj_name and len(ref_paths) < 4:
+                    auto = _auto_match_refs(item.get("name", ""), proj_name, exclude=ref_paths)
+                    for a in auto:
+                        if len(ref_paths) >= 4: break
+                        ref_paths.append(a)
+                # Personagens do episódio como refs de estilo visual do projeto
                 for c in ep_chars:
-                    if len(ref_paths) >= 3:
-                        break
+                    if len(ref_paths) >= 4: break
                     if c not in ref_paths and (PROJECT_ROOT / c).exists():
                         ref_paths.append(c)
                 try:
                     result = _dispatch_image(cfg, img_prompt, ref_paths or None)
                     url = result["images"][0]["url"]
-                    urllib_req.urlretrieve(url, str(dest))
+                    _download_image(url, dest)
                     rel = str(dest.relative_to(PROJECT_ROOT))
                     with nq_lock:
                         nq[item_type][idx2]["generated_ref"] = rel
@@ -1766,11 +1908,13 @@ def nq_analyze_environments(nq_id):
             all_images, all_docs_content = [], []
             if proj_name:
                 proj_dir = PROJECTS_DIR / proj_name
-                img_dir  = proj_dir / "imagens"
-                if img_dir.exists():
-                    for f in sorted(img_dir.iterdir()):
-                        if f.is_file():
-                            all_images.append(str(f.relative_to(PROJECT_ROOT)))
+                IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+                for subfolder in ("imagens", "figurantes"):
+                    img_dir = proj_dir / subfolder
+                    if img_dir.exists():
+                        for f in sorted(img_dir.iterdir()):
+                            if f.is_file() and f.suffix.lower() in IMAGE_EXTS:
+                                all_images.append(str(f.relative_to(PROJECT_ROOT)))
                 docs_dir = proj_dir / "docs"
                 if docs_dir.exists():
                     for f in sorted(docs_dir.iterdir()):
@@ -1799,9 +1943,9 @@ def nq_analyze_environments(nq_id):
 
             analyse_prompt = f"""Você é um supervisor de arte de uma série animada. Analise as cenas abaixo e identifique:
 1. Todos os AMBIENTES/LOCAÇÕES únicos que aparecem (corredor, sala de aula, laboratório, etc.)
-2. Elementos visuais NOVOS que aparecem nas cenas mas NÃO têm imagem de referência na lista de imagens disponíveis
+2. Elementos visuais NOVOS que aparecem nas cenas mas NÃO têm imagem de referência na lista abaixo
 
-Imagens de referência já existentes no projeto:
+Imagens disponíveis no projeto (paths exatos):
 {images_list}
 
 Cenas do episódio:
@@ -1813,9 +1957,9 @@ Retorne SOMENTE um JSON válido (sem markdown) com este formato exato:
   "environments": [
     {{
       "name": "Nome do Ambiente",
-      "description": "Descrição visual detalhada do ambiente para geração de imagem",
-      "image_prompt": "Prompt completo em inglês para gerar imagem deste ambiente via IA (anime style, detalhes visuais, iluminação, perspectiva, 16:9)",
-      "existing_ref": null
+      "description": "Descrição visual detalhada do ambiente",
+      "image_prompt": "Prompt completo em inglês para gerar imagem deste ambiente via IA (detalhes visuais, iluminação, perspectiva, 16:9)",
+      "existing_ref": "path/exato/da/imagem.png ou null"
     }}
   ],
   "new_elements": [
@@ -1823,16 +1967,19 @@ Retorne SOMENTE um JSON válido (sem markdown) com este formato exato:
       "name": "Nome do Elemento",
       "type": "character|object|creature",
       "description": "Descrição visual do elemento",
-      "image_prompt": "Prompt completo em inglês para gerar imagem deste elemento via IA"
+      "image_prompt": "Prompt completo em inglês para gerar imagem deste elemento via IA",
+      "existing_ref": "path/exato/da/imagem.png ou null"
     }}
   ]
 }}
 
-Regras:
-- existing_ref: se alguma imagem da lista acima claramente corresponde a este ambiente/elemento, coloque o path exato; caso contrário null
-- new_elements: APENAS elementos que NÃO têm nenhuma imagem correspondente na lista
-- Se todos os ambientes já têm referência: new_elements = []
-- image_prompt deve ser detalhado (estilo anime, cores, iluminação, composição)"""
+Regras CRÍTICAS para existing_ref:
+- Analise o nome e descrição de cada ambiente/elemento e compare com CADA arquivo da lista acima
+- Se o nome do arquivo (sem extensão) corresponder ao ambiente ou elemento — mesmo parcialmente — coloque o PATH EXATO
+- Exemplos: ambiente "Escola" → "projetos/PROJ/imagens/escola.png"; elemento "Pix-Z" → "projetos/PROJ/imagens/pix-z.png"
+- Se não houver correspondência clara: null
+- new_elements: APENAS elementos sem NENHUMA imagem correspondente na lista
+- image_prompt deve ser detalhado e consistente com o estilo visual da série"""
 
             _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
             proc = subprocess.run(
@@ -2949,6 +3096,7 @@ APENAS o JSON, nada mais."""
 
 KIE_STYLES: dict = {
     "anime":          ("An anime-style illustration of",    "Studio Ghibli inspired, soft colors, detailed backgrounds, expressive characters."),
+    "anime_gacha":    ("A vibrant anime gacha-game style illustration of", "Genshin Impact inspired, cel-shaded characters, futuristic sci-fi setting, neon accents, detailed tech outfits, glowing energy effects, bokeh pixel background, expressive faces, dynamic pose, vibrant colors, high quality digital art."),
     "photorealistic": ("A photorealistic",                  "Captured with professional camera equipment, natural lighting, sharp details, high dynamic range."),
     "cinematic":      ("A cinematic film still of",         "Dramatic lighting, shallow depth of field, anamorphic lens flare, color graded in teal and orange."),
     "illustration":   ("A beautiful illustration of",       "Digital art style, vibrant colors, clean lines, professional quality illustration."),
@@ -2994,21 +3142,24 @@ def _kie_call_image(
         "output_format": "png",
         "google_search": False,
     }
-    # Image-to-image: pass reference images if provided (max 14)
-    valid_urls = [u for u in (image_urls or []) if u and u.startswith("http")]
-    if valid_urls:
-        inp["image_input"] = valid_urls[:14]
-        print(f"[kie.ai] image-to-image with {len(valid_urls)} ref(s)")
+    # Image-to-image: refs como URLs públicas ou data URIs base64
+    valid_inputs = [u for u in (image_urls or []) if u and (u.startswith("http") or u.startswith("data:"))]
+    if valid_inputs:
+        inp["image_input"] = valid_inputs[:14]
+        print(f"[kie.ai] image-to-image com {len(valid_inputs)} ref(s) ({sum(1 for u in valid_inputs if u.startswith('data:'))} base64)")
 
     body = json.dumps({"model": "nano-banana-2", "input": inp}).encode()
+    print(f"[kie.ai] createTask payload size: {len(body)/1024:.1f} KB")
     req = _req.Request(f"{base}/createTask", data=body, headers=auth, method="POST")
     with _req.urlopen(req, timeout=30) as r:
         resp_data = json.loads(r.read())
+    if not resp_data.get("data") or not resp_data["data"].get("taskId"):
+        raise RuntimeError(f"Kie.ai createTask falhou: {resp_data}")
     task_id = resp_data["data"]["taskId"]
     print(f"[kie.ai] task created: {task_id}")
 
     # Poll for result
-    for attempt in range(36):
+    for attempt in range(60):
         time.sleep(5)
         poll = _req.Request(
             f"{base}/recordInfo?taskId={task_id}",
@@ -3017,15 +3168,122 @@ def _kie_call_image(
         )
         with _req.urlopen(poll, timeout=30) as r:
             poll_data = json.loads(r.read())
-        status = poll_data.get("data", {}).get("status", "")
-        print(f"[kie.ai] attempt {attempt+1}: {status}")
-        if status == "success":
-            url = poll_data["data"]["imageUrl"]
-            return {"images": [{"url": url}]}
-        if status in ("failed", "error"):
-            raise RuntimeError(f"Kie.ai task failed: {poll_data}")
+        data = poll_data.get("data") or {}
+        state = data.get("state", "")
+        print(f"[kie.ai] attempt {attempt+1}: {state}")
+        if state == "success":
+            # resultJson é uma string JSON: {"resultUrls": ["https://..."]}
+            result_json = data.get("resultJson", "{}")
+            result = json.loads(result_json) if isinstance(result_json, str) else result_json
+            urls = result.get("resultUrls") or []
+            if not urls:
+                raise RuntimeError(f"Kie.ai success mas sem URLs: {data}")
+            return {"images": [{"url": u} for u in urls]}
+        if state in ("failed", "error"):
+            raise RuntimeError(f"Kie.ai task failed: {data.get('failMsg') or poll_data}")
 
-    raise TimeoutError(f"Kie.ai task {task_id} timed out after 3 minutes")
+    raise TimeoutError(f"Kie.ai task {task_id} timed out after 5 minutes")
+
+
+def _resolve_ep_ref(ref: str, ep_dir: Path) -> str:
+    """Resolve uma ref quebrada de episódio buscando o arquivo mais próximo na pasta.
+
+    Se `ref` não existe mas aponta para uma pasta do episódio (ambiente/ ou elementos/),
+    tenta encontrar o arquivo com nome mais similar usando tokens normalizados.
+    Retorna o ref original se não encontrar nada melhor.
+    """
+    import unicodedata
+
+    if Path(ref).exists():
+        return ref  # já existe, sem necessidade de resolução
+
+    ref_path = Path(ref)
+    # Só tenta resolver refs dentro de episodios/
+    if "episodios" not in ref_path.parts:
+        return ref
+
+    # Determina a subpasta (ambiente ou elementos)
+    subfolder = None
+    for part in ref_path.parts:
+        if part in ("ambiente", "elementos"):
+            subfolder = part
+            break
+    if not subfolder:
+        return ref
+
+    folder = ep_dir / subfolder
+    if not folder.exists():
+        return ref
+
+    candidates = list(folder.glob("*.png")) + list(folder.glob("*.jpg"))
+    if not candidates:
+        return ref
+
+    def _norm(s: str) -> set:
+        s = unicodedata.normalize("NFD", s.lower())
+        s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+        s = re.sub(r"[^a-z0-9]", " ", s)
+        return set(t for t in s.split() if len(t) >= 3)
+
+    ref_tokens = _norm(ref_path.stem)
+    if not ref_tokens:
+        return ref
+
+    best, best_score = None, 0
+    for c in candidates:
+        c_tokens = _norm(c.stem)
+        score = len(ref_tokens & c_tokens)  # interseção de tokens
+        if score > best_score:
+            best_score = score
+            best = c
+
+    if best and best_score > 0:
+        resolved = str(best.resolve().relative_to(PROJECT_ROOT.resolve()))
+        print(f"[resolve_ref] '{ref_path.name}' → '{best.name}' (score={best_score})")
+        return resolved
+
+    return ref
+
+
+def _auto_match_refs(item_name: str, proj_name: str, exclude: list | None = None) -> list[str]:
+    """(A) Match por nome: busca em imagens/ e figurantes/ do projeto arquivos cujo nome
+    contenha alguma palavra-chave do nome do ambiente/elemento.
+    Retorna lista de paths relativos ao PROJECT_ROOT (até 2 matches).
+    """
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        s = unicodedata.normalize("NFD", s.lower())
+        s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+        return re.sub(r"[^a-z0-9]", " ", s)
+
+    # Tokens do nome do item (≥3 chars, ignora stopwords)
+    STOP = {"de", "do", "da", "dos", "das", "em", "na", "no", "the", "of", "and", "com", "uma", "um"}
+    tokens = [t for t in _norm(item_name).split() if len(t) >= 3 and t not in STOP]
+    if not tokens:
+        return []
+
+    exclude_set = set(exclude or [])
+    matches: list[str] = []
+    IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+
+    for subfolder in ("imagens", "figurantes"):
+        folder = PROJECTS_DIR / proj_name / subfolder
+        if not folder.exists():
+            continue
+        for f in sorted(folder.iterdir()):
+            if f.suffix.lower() not in IMAGE_EXTS:
+                continue
+            rel = str(f.relative_to(PROJECT_ROOT))
+            if rel in exclude_set or rel in matches:
+                continue
+            fname_norm = _norm(f.stem)
+            # Match se qualquer token do item aparece no nome do arquivo ou vice-versa
+            if any(t in fname_norm or fname_norm.startswith(t) for t in tokens):
+                matches.append(rel)
+                if len(matches) >= 2:
+                    return matches
+    return matches
 
 
 def _local_path_to_url(rel_path: str, server_host: str = "127.0.0.1", port: int = 7860) -> str | None:
@@ -3036,11 +3294,129 @@ def _local_path_to_url(rel_path: str, server_host: str = "127.0.0.1", port: int 
     return f"http://{server_host}:{port}/file/{rel_path}"
 
 
+def _path_to_base64(path: str, max_size: int = 512) -> str | None:
+    """Convert a local file path to a base64 data URI.
+    Redimensiona para max_size px no lado maior para manter o payload pequeno (~100KB).
+    """
+    import base64, io
+    full = Path(path) if Path(path).is_absolute() else PROJECT_ROOT / path
+    if not full.exists():
+        return None
+    try:
+        from PIL import Image
+        img = Image.open(full).convert("RGB")
+        img.thumbnail((max_size, max_size), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        return f"data:image/jpeg;base64,{b64}"
+    except Exception:
+        # Fallback: envia original em base64 sem redimensionar
+        import mimetypes
+        mime = mimetypes.guess_type(str(full))[0] or "image/png"
+        b64 = base64.b64encode(full.read_bytes()).decode()
+        return f"data:{mime};base64,{b64}"
+
+
+_temp_upload_cache: dict[str, str] = {}  # rel_path → public URL (cache por sessão)
+
+
+def _upload_temp(rel_path: str, max_size: int = 768) -> str | None:
+    """Faz upload de uma imagem local para um host público temporário e retorna a URL pública.
+
+    Tenta catbox.moe (sem API key, permanente) e depois 0x0.st como fallback.
+    Resultado é cacheado por sessão para evitar re-uploads do mesmo arquivo.
+    """
+    import io, urllib.request as _urr
+
+    if rel_path in _temp_upload_cache:
+        cached = _temp_upload_cache[rel_path]
+        print(f"[temp-upload] cache hit: {rel_path} → {cached}")
+        return cached
+
+    full = PROJECT_ROOT / rel_path
+    if not full.exists():
+        print(f"[temp-upload] arquivo não encontrado: {rel_path}")
+        return None
+
+    # Redimensiona para max_size px para upload mais rápido
+    try:
+        from PIL import Image
+        img = Image.open(full).convert("RGB")
+        img.thumbnail((max_size, max_size), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=88)
+        img_bytes = buf.getvalue()
+        fname = full.stem + ".jpg"
+        ctype = "image/jpeg"
+    except Exception:
+        img_bytes = full.read_bytes()
+        fname = full.name
+        ctype = "image/png"
+
+    def _multipart_body(boundary: str, field_data: dict, file_field: str, filename: str, content_type: str, file_bytes: bytes) -> bytes:
+        parts = b""
+        for k, v in field_data.items():
+            parts += f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode()
+        parts += (
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"{file_field}\"; filename=\"{filename}\"\r\n"
+            f"Content-Type: {content_type}\r\n\r\n"
+        ).encode() + file_bytes + f"\r\n--{boundary}--\r\n".encode()
+        return parts
+
+    # 1) catbox.moe
+    try:
+        bnd = "CatboxBoundary7MA4"
+        body = _multipart_body(bnd, {"reqtype": "fileupload"}, "fileToUpload", fname, ctype, img_bytes)
+        req = _urr.Request(
+            "https://catbox.moe/user/api.php", data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={bnd}"}
+        )
+        with _urr.urlopen(req, timeout=30) as resp:
+            url = resp.read().decode().strip()
+        if url.startswith("https://"):
+            _temp_upload_cache[rel_path] = url
+            print(f"[temp-upload] catbox.moe: {rel_path} → {url}")
+            return url
+        print(f"[temp-upload] catbox.moe resposta inesperada: {url!r}")
+    except Exception as e:
+        print(f"[temp-upload] catbox.moe falhou: {e}")
+
+    # 2) 0x0.st (fallback)
+    try:
+        bnd2 = "ZeroXZeroBoundary"
+        body2 = _multipart_body(bnd2, {}, "file", fname, ctype, img_bytes)
+        req2 = _urr.Request(
+            "https://0x0.st", data=body2,
+            headers={"Content-Type": f"multipart/form-data; boundary={bnd2}"}
+        )
+        with _urr.urlopen(req2, timeout=30) as resp2:
+            url2 = resp2.read().decode().strip()
+        if url2.startswith("https://"):
+            _temp_upload_cache[rel_path] = url2
+            print(f"[temp-upload] 0x0.st: {rel_path} → {url2}")
+            return url2
+        print(f"[temp-upload] 0x0.st resposta inesperada: {url2!r}")
+    except Exception as e2:
+        print(f"[temp-upload] 0x0.st falhou: {e2}")
+
+    return None
+
+
+def _download_image(url: str, dest: Path) -> None:
+    """Download de imagem com User-Agent de browser para evitar bloqueios (403)."""
+    import urllib.request as _dl
+    req = _dl.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; SkyReels/1.0)"})
+    with _dl.urlopen(req, timeout=60) as r:
+        dest.write_bytes(r.read())
+
+
 def _dispatch_image(cfg: dict, prompt: str, ref_paths: list | None = None) -> dict:
     """Route image generation to kie.ai or fal.ai based on configured image_model.
 
-    - kie-ai/nano-banana-2 → REST API, image+text (up to 14 refs via image_input URL),
-                             applies style enhancement from nano-banana-2 engine
+    - kie-ai/nano-banana-2 → REST API, image+text.
+                             Refs locais são convertidas para base64 (data URI) e enviadas
+                             diretamente no campo image_input — sem necessidade de URL pública.
     - fal-ai/* → fal_client SDK, supports image references via upload
     Returns {"images": [{"url": "..."}]}
     """
@@ -3053,17 +3429,18 @@ def _dispatch_image(cfg: dict, prompt: str, ref_paths: list | None = None) -> di
         style = cfg.get("kie_image_style", "anime")
         enhanced = _enhance_prompt_for_kie(prompt, style)
         print(f"[kie.ai] style={style} | enhanced: {enhanced[:120]}")
-        # Build image_input: convert local paths → public URLs served by this app
-        server_host = cfg.get("server_host", "127.0.0.1")
-        image_urls: list = []
-        for rp in (ref_paths or [])[:14]:
+        # Kie.ai exige URLs públicas. Fazemos upload das refs para catbox.moe (ou 0x0.st).
+        public_refs: list[str] = []
+        for rp in (ref_paths or [])[:4]:
             if rp.startswith("http"):
-                image_urls.append(rp)
+                public_refs.append(rp)
             else:
-                url = _local_path_to_url(rp, server_host)
-                if url:
-                    image_urls.append(url)
-        return _kie_call_image(enhanced, kie_key, image_urls=image_urls or None)
+                pub_url = _upload_temp(rp)
+                if pub_url:
+                    public_refs.append(pub_url)
+        if ref_paths and not public_refs:
+            print("[kie.ai] upload de refs falhou — gerando sem refs")
+        return _kie_call_image(enhanced, kie_key, image_urls=public_refs or None)
 
     # fal.ai path
     import fal_client as _fal
@@ -3146,7 +3523,7 @@ def _fal_call_image(fal_client, model, prompt, image_urls=None):
 @app.route("/projects/<name>/generate-images", methods=["POST"])
 def generate_episode_images(name):
     import urllib.request as urllib_req
-    cfg = _load_global_config()
+    cfg = _load_effective_cfg(name)
     data    = request.get_json(force=True)
     jobs    = data.get("jobs", [])
     img_dir = PROJECTS_DIR / name / "imagens"
@@ -3160,7 +3537,7 @@ def generate_episode_images(name):
             url = res["images"][0]["url"]
             fname = secure_filename(f"{job.get('label','scene')[:40]}.jpg").replace(" ", "_")
             dest  = img_dir / fname
-            urllib_req.urlretrieve(url, str(dest))
+            _download_image(url, dest)
             rel   = str(dest.relative_to(PROJECT_ROOT))
             job   = {**job, "ref_imgs": [rel]}
         except Exception as e:
@@ -3238,26 +3615,66 @@ def nq_generate_images(nq_id):
     if not proj_name:
         return jsonify({"error": "Episódio não vinculado a um projeto"}), 400
 
-    cfg     = _load_global_config()
+    cfg     = _load_effective_cfg(proj_name)
     ep_slug = nq.get("ep_code") or re.sub(r'[^\w\-]', '_', nq.get("name", f"ep_{nq_id}"))[:60]
     img_dir = PROJECTS_DIR / proj_name / "episodios" / ep_slug / "imagens"
     img_dir.mkdir(parents=True, exist_ok=True)
 
     with nq_lock:
-        jobs = list(nq.get("jobs", []))
+        jobs         = list(nq.get("jobs", []))
+        environments = list(nq.get("environments", []))
+        new_elements = list(nq.get("new_elements", []))
+
+    # Mapa: generated_ref → path real (para resolver refs quebradas das cenas)
+    # Usa os generated_ref que foram salvos após gerar imagens de ambiente/elemento
+    ep_ref_map: dict[str, str] = {}
+    for item in environments + new_elements:
+        gen = item.get("generated_ref")
+        if gen and Path(gen).exists():
+            ep_ref_map[Path(gen).stem.lower()] = gen
+
+    def _resolve_job_ref(ref: str) -> str | None:
+        """Resolve ref de cena: se não existe e aponta para episodio/, busca via generated_ref map."""
+        if not ref or ref.startswith("http"):
+            return None
+        if Path(ref).exists():
+            return ref
+        if "episodios" not in ref:
+            return None  # ref externa não encontrada — descarta
+        # Fuzzy match por tokens contra os generated_ref conhecidos
+        import unicodedata
+        def _norm(s):
+            s = unicodedata.normalize("NFD", s.lower())
+            s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+            return set(t for t in re.sub(r"[^a-z0-9]", " ", s).split() if len(t) >= 3)
+        ref_tokens = _norm(Path(ref).stem)
+        best, best_score = None, 0
+        for stem, path in ep_ref_map.items():
+            score = len(ref_tokens & _norm(stem))
+            if score > best_score:
+                best_score = score
+                best = path
+        if best and best_score >= 1:
+            print(f"[resolve_ref] '{Path(ref).name}' → '{Path(best).name}' (score={best_score})")
+            return best
+        # Fallback: _resolve_ep_ref por arquivo real na pasta
+        ep_dir = PROJECTS_DIR / proj_name / "episodios" / ep_slug
+        return _resolve_ep_ref(ref, ep_dir) if Path(_resolve_ep_ref(ref, ep_dir)).exists() else None
 
     errors = []
     for i, job in enumerate(jobs):
         if job.get("status") == "done":
             continue
         img_prompt = job.get("image_prompt") or job.get("prompt", "")[:400]
-        ref_paths  = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http")]
+        raw_refs = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http")]
+        ref_paths = [_resolve_job_ref(r) for r in raw_refs]
+        ref_paths = [r for r in ref_paths if r]  # remove None
         try:
             res   = _dispatch_image(cfg, img_prompt, ref_paths or None)
             url   = res["images"][0]["url"]
             fname = secure_filename(f"{job.get('label','scene')[:40]}.png").replace(" ", "_")
             dest  = img_dir / fname
-            urllib_req.urlretrieve(url, str(dest))
+            _download_image(url, dest)
             rel   = str(dest.relative_to(PROJECT_ROOT))
             orig_refs = [r for r in (job.get("ref_imgs") or []) if r != rel]
             jobs[i] = {**job, "ref_imgs": ([rel] + orig_refs)[:4]}
@@ -3432,12 +3849,12 @@ def nq_job_generate_image(nq_id, job_id):
     if not proj_name:
         return jsonify({"error": "Episódio não vinculado a um projeto"}), 400
 
-    cfg = _load_global_config()
     with nq_lock:
         nq2 = next((q for q in named_queues if q["id"] == nq_id), None)
         job = next((j for j in nq2["jobs"] if j["id"] == job_id), None) if nq2 else None
     if job is None:
         return jsonify({"error": "Cena não encontrada"}), 404
+    cfg = _load_effective_cfg(proj_name, nq2.get("image_style") if nq2 else None)
 
     img_prompt = job.get("image_prompt") or job.get("prompt", "")[:400]
     if not img_prompt:
@@ -3448,12 +3865,12 @@ def nq_job_generate_image(nq_id, job_id):
     img_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        ref_paths = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http")]
+        ref_paths = [r for r in (job.get("ref_imgs") or []) if r and not r.startswith("http") and (PROJECT_ROOT / r).exists()]
         res   = _dispatch_image(cfg, img_prompt, ref_paths or None)
         url   = res["images"][0]["url"]
         fname = secure_filename(f"{job.get('label','scene')[:40]}.png").replace(" ", "_")
         dest  = img_dir / fname
-        urllib_req.urlretrieve(url, str(dest))
+        _download_image(url, dest)
         rel   = str(dest.relative_to(PROJECT_ROOT))
 
         with nq_lock:

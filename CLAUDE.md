@@ -91,7 +91,7 @@ Output is saved to `result/<task_type>/<seed>_<timestamp>.mp4`.
 ## Projeto / Repositório
 
 - **Nome do projeto:** INEMA AI SF StoriesForce
-- **Repositório:** https://github.com/inematds/aisf  (remote `personal`)
+- **Repositório:** git@github.com:inematds/aisf.git  (remote `personal`)
 - Remote `origin` mantém o upstream original SkyworkAI/SkyReels-V3 (não fazer push para origin)
 
 ## Web UI Version — OBRIGATÓRIO antes de todo git push

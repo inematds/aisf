@@ -20,7 +20,7 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/fila1/paisagem_montanha.png"
+          "projetos/Montanha/episodios/EP001/imagens/paisagem_montanha.png"
         ],
         "started_at": "2026-02-24 04:47:41",
         "finished_at": "2026-02-24 05:25:23"
@@ -60,8 +60,8 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/fila1/personagem_trilha.png",
-          "uploads/fila1/paisagem_montanha.png"
+          "projetos/Montanha/episodios/EP001/imagens/personagem_trilha.png",
+          "projetos/Montanha/episodios/EP001/imagens/paisagem_montanha.png"
         ],
         "started_at": "2026-02-24 07:38:38",
         "finished_at": "2026-02-24 08:15:44"
@@ -101,10 +101,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/fila1/personagem_acampamento.png",
-          "uploads/fila1/personagem_fogueira_estrelas.png",
-          "uploads/fila1/personagem_acampamento_duplo.png",
-          "uploads/fila1/personagem_barraca_duplo.png"
+          "projetos/Montanha/episodios/EP001/imagens/personagem_acampamento.png",
+          "projetos/Montanha/episodios/EP001/imagens/personagem_fogueira_estrelas.png",
+          "projetos/Montanha/episodios/EP001/imagens/personagem_acampamento_duplo.png",
+          "projetos/Montanha/episodios/EP001/imagens/personagem_barraca_duplo.png"
         ],
         "started_at": "2026-02-24 13:21:41",
         "finished_at": "2026-02-24 13:39:44"
@@ -163,8 +163,8 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/fila1/personagem_cume_vitoria.png",
-          "uploads/fila1/paisagem_montanha.png"
+          "projetos/Montanha/episodios/EP001/imagens/personagem_cume_vitoria.png",
+          "projetos/Montanha/episodios/EP001/imagens/paisagem_montanha.png"
         ],
         "started_at": "2026-02-24 14:30:29",
         "finished_at": "2026-02-24 14:48:34"
@@ -202,12 +202,14 @@
         "seed": 1010,
         "low_vram": true,
         "input_image": "uploads/fila1/personagem_narracao.png",
-        "input_audio": "uploads/fila1/narracao_final.mp3",
+        "input_audio": "projetos/Montanha/episodios/EP001/audios/narracao_final.mp3",
         "started_at": "2026-02-24 15:29:14",
         "finished_at": "2026-02-24 16:45:48"
       }
     ],
-    "created_at": "2026-02-24 04:36:55"
+    "created_at": "2026-02-24 04:36:55",
+    "project": "Montanha",
+    "ep_code": "EP001"
   },
   {
     "id": 5,
@@ -230,9 +232,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena01.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena01.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png"
         ],
         "started_at": "2026-02-25 14:21:46",
         "finished_at": "2026-02-25 14:35:55"
@@ -250,10 +252,11 @@
         "resolution": "480P",
         "seed": 1002,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c01_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c01_valen_01.mp3",
         "started_at": "2026-02-25 03:12:30",
-        "finished_at": "2026-02-25 03:20:06"
+        "finished_at": "2026-02-25 03:20:06",
+        "ref_imgs": []
       },
       {
         "id": 133,
@@ -268,10 +271,11 @@
         "resolution": "480P",
         "seed": 1003,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c01_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c01_lumi_01.mp3",
         "started_at": "2026-02-25 03:20:06",
-        "finished_at": "2026-02-25 03:27:13"
+        "finished_at": "2026-02-25 03:27:13",
+        "ref_imgs": []
       },
       {
         "id": 134,
@@ -286,10 +290,11 @@
         "resolution": "480P",
         "seed": 1004,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c01_valen_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c01_valen_02.mp3",
         "started_at": "2026-02-25 03:27:13",
-        "finished_at": "2026-02-25 03:34:16"
+        "finished_at": "2026-02-25 03:34:16",
+        "ref_imgs": []
       },
       {
         "id": 135,
@@ -304,10 +309,11 @@
         "resolution": "480P",
         "seed": 1005,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c01_lumi_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c01_lumi_02.mp3",
         "started_at": "2026-02-25 03:34:16",
-        "finished_at": "2026-02-25 03:41:22"
+        "finished_at": "2026-02-25 03:41:22",
+        "ref_imgs": []
       },
       {
         "id": 136,
@@ -325,9 +331,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena01.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena01.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png"
         ],
         "started_at": "2026-02-25 14:35:55",
         "finished_at": "2026-02-25 14:50:10"
@@ -348,9 +354,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena02.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena02.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png"
         ],
         "started_at": "2026-02-25 14:50:10",
         "finished_at": "2026-02-25 15:04:02"
@@ -368,10 +374,11 @@
         "resolution": "480P",
         "seed": 1012,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c02_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c02_lumi_01.mp3",
         "started_at": "2026-02-25 04:10:12",
-        "finished_at": "2026-02-25 04:19:46"
+        "finished_at": "2026-02-25 04:19:46",
+        "ref_imgs": []
       },
       {
         "id": 139,
@@ -386,10 +393,11 @@
         "resolution": "480P",
         "seed": 1013,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c02_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c02_valen_01.mp3",
         "started_at": "2026-02-25 04:22:59",
-        "finished_at": "2026-02-25 04:30:21"
+        "finished_at": "2026-02-25 04:30:21",
+        "ref_imgs": []
       },
       {
         "id": 140,
@@ -404,10 +412,11 @@
         "resolution": "480P",
         "seed": 1014,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c02_lumi_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c02_lumi_02.mp3",
         "started_at": "2026-02-25 04:30:21",
-        "finished_at": "2026-02-25 04:37:30"
+        "finished_at": "2026-02-25 04:37:30",
+        "ref_imgs": []
       },
       {
         "id": 141,
@@ -422,10 +431,11 @@
         "resolution": "480P",
         "seed": 1015,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c02_valen_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c02_valen_02.mp3",
         "started_at": "2026-02-25 04:37:30",
-        "finished_at": "2026-02-25 04:44:36"
+        "finished_at": "2026-02-25 04:44:36",
+        "ref_imgs": []
       },
       {
         "id": 142,
@@ -443,9 +453,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena02.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena02.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png"
         ],
         "started_at": "2026-02-25 04:44:36",
         "finished_at": "2026-02-25 04:56:06"
@@ -466,8 +476,8 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena03.png",
-          "uploads/inetusx/eps01/maya.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena03.png",
+          "projetos/INETUSX/imagens/maya.png"
         ],
         "started_at": "2026-02-25 04:56:06",
         "finished_at": "2026-02-25 05:11:42"
@@ -485,10 +495,11 @@
         "resolution": "480P",
         "seed": 1022,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c03_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c03_lumi_01.mp3",
         "started_at": "2026-02-25 05:11:42",
-        "finished_at": "2026-02-25 05:19:39"
+        "finished_at": "2026-02-25 05:19:39",
+        "ref_imgs": []
       },
       {
         "id": 145,
@@ -503,10 +514,11 @@
         "resolution": "480P",
         "seed": 1023,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c03_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c03_maya_01.mp3",
         "started_at": "2026-02-25 05:19:39",
-        "finished_at": "2026-02-25 05:27:25"
+        "finished_at": "2026-02-25 05:27:25",
+        "ref_imgs": []
       },
       {
         "id": 146,
@@ -521,10 +533,11 @@
         "resolution": "480P",
         "seed": 1024,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c03_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c03_valen_01.mp3",
         "started_at": "2026-02-25 05:27:25",
-        "finished_at": "2026-02-25 05:38:21"
+        "finished_at": "2026-02-25 05:38:21",
+        "ref_imgs": []
       },
       {
         "id": 147,
@@ -539,10 +552,11 @@
         "resolution": "480P",
         "seed": 1025,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c03_maya_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c03_maya_02.mp3",
         "started_at": "2026-02-25 05:38:21",
-        "finished_at": "2026-02-25 05:53:44"
+        "finished_at": "2026-02-25 05:53:44",
+        "ref_imgs": []
       },
       {
         "id": 148,
@@ -560,10 +574,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena03.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/vana.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena03.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/vana.png"
         ],
         "started_at": "2026-02-25 05:53:44",
         "finished_at": "2026-02-25 06:05:14"
@@ -584,8 +598,8 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena04.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena04.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 06:05:14",
         "finished_at": "2026-02-25 06:19:21"
@@ -603,10 +617,11 @@
         "resolution": "480P",
         "seed": 1032,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c04_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c04_caio_01.mp3",
         "started_at": "2026-02-25 06:19:21",
-        "finished_at": "2026-02-25 06:27:38"
+        "finished_at": "2026-02-25 06:27:38",
+        "ref_imgs": []
       },
       {
         "id": 151,
@@ -621,10 +636,11 @@
         "resolution": "480P",
         "seed": 1033,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c04_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c04_maya_01.mp3",
         "started_at": "2026-02-25 06:27:38",
-        "finished_at": "2026-02-25 06:34:53"
+        "finished_at": "2026-02-25 06:34:53",
+        "ref_imgs": []
       },
       {
         "id": 152,
@@ -639,10 +655,11 @@
         "resolution": "480P",
         "seed": 1034,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c04_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c04_lumi_01.mp3",
         "started_at": "2026-02-25 06:34:53",
-        "finished_at": "2026-02-25 06:42:35"
+        "finished_at": "2026-02-25 06:42:35",
+        "ref_imgs": []
       },
       {
         "id": 153,
@@ -657,10 +674,11 @@
         "resolution": "480P",
         "seed": 1035,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c04_caio_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c04_caio_02.mp3",
         "started_at": "2026-02-25 06:42:35",
-        "finished_at": "2026-02-25 06:49:39"
+        "finished_at": "2026-02-25 06:49:39",
+        "ref_imgs": []
       },
       {
         "id": 154,
@@ -678,10 +696,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena04.png",
-          "uploads/inetusx/eps01/caio.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena04.png",
+          "projetos/INETUSX/imagens/caio.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png"
         ],
         "started_at": "2026-02-25 06:49:39",
         "finished_at": "2026-02-25 07:00:50"
@@ -702,9 +720,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena05.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/vana.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena05.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/vana.png"
         ],
         "started_at": "2026-02-25 07:00:50",
         "finished_at": "2026-02-25 07:12:22"
@@ -722,10 +740,11 @@
         "resolution": "480P",
         "seed": 1042,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c05_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c05_maya_01.mp3",
         "started_at": "2026-02-25 07:12:22",
-        "finished_at": "2026-02-25 07:20:39"
+        "finished_at": "2026-02-25 07:20:39",
+        "ref_imgs": []
       },
       {
         "id": 157,
@@ -740,10 +759,11 @@
         "resolution": "480P",
         "seed": 1043,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c05_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c05_valen_01.mp3",
         "started_at": "2026-02-25 07:20:39",
-        "finished_at": "2026-02-25 07:28:02"
+        "finished_at": "2026-02-25 07:28:02",
+        "ref_imgs": []
       },
       {
         "id": 158,
@@ -758,10 +778,11 @@
         "resolution": "480P",
         "seed": 1044,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c05_maya_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c05_maya_02.mp3",
         "started_at": "2026-02-25 07:28:02",
-        "finished_at": "2026-02-25 07:35:47"
+        "finished_at": "2026-02-25 07:35:47",
+        "ref_imgs": []
       },
       {
         "id": 159,
@@ -776,10 +797,11 @@
         "resolution": "480P",
         "seed": 1045,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c05_valen_02.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c05_valen_02.mp3",
         "started_at": "2026-02-25 07:35:47",
-        "finished_at": "2026-02-25 07:42:47"
+        "finished_at": "2026-02-25 07:42:47",
+        "ref_imgs": []
       },
       {
         "id": 160,
@@ -797,9 +819,9 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena05.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/maya.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena05.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/maya.png"
         ],
         "started_at": "2026-02-25 07:42:47",
         "finished_at": "2026-02-25 07:54:01"
@@ -820,10 +842,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena06.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena06.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 07:54:01",
         "finished_at": "2026-02-25 08:08:17"
@@ -844,8 +866,8 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena06.png",
-          "uploads/inetusx/eps01/lumi.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena06.png",
+          "projetos/INETUSX/imagens/lumi.png"
         ],
         "started_at": "2026-02-25 08:08:17",
         "finished_at": "2026-02-25 08:17:16"
@@ -863,10 +885,11 @@
         "resolution": "480P",
         "seed": 1053,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c06_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c06_caio_01.mp3",
         "started_at": "2026-02-25 08:17:16",
-        "finished_at": "2026-02-25 08:25:54"
+        "finished_at": "2026-02-25 08:25:54",
+        "ref_imgs": []
       },
       {
         "id": 164,
@@ -881,10 +904,11 @@
         "resolution": "480P",
         "seed": 1054,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c06_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c06_maya_01.mp3",
         "started_at": "2026-02-25 08:25:54",
-        "finished_at": "2026-02-25 08:33:22"
+        "finished_at": "2026-02-25 08:33:22",
+        "ref_imgs": []
       },
       {
         "id": 165,
@@ -899,10 +923,11 @@
         "resolution": "480P",
         "seed": 1055,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c06_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c06_valen_01.mp3",
         "started_at": "2026-02-25 08:33:22",
-        "finished_at": "2026-02-25 08:41:03"
+        "finished_at": "2026-02-25 08:41:03",
+        "ref_imgs": []
       },
       {
         "id": 166,
@@ -920,10 +945,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png",
-          "uploads/inetusx/eps01/maya.png"
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png",
+          "projetos/INETUSX/imagens/maya.png"
         ],
         "started_at": "2026-02-25 08:41:03",
         "finished_at": "2026-02-25 08:55:54"
@@ -944,10 +969,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena07.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena07.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 08:55:54",
         "finished_at": "2026-02-25 09:09:58"
@@ -965,10 +990,11 @@
         "resolution": "480P",
         "seed": 1062,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c07_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c07_maya_01.mp3",
         "started_at": "2026-02-25 09:09:58",
-        "finished_at": "2026-02-25 09:17:27"
+        "finished_at": "2026-02-25 09:17:27",
+        "ref_imgs": []
       },
       {
         "id": 169,
@@ -983,10 +1009,11 @@
         "resolution": "480P",
         "seed": 1063,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c07_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c07_caio_01.mp3",
         "started_at": "2026-02-25 09:17:27",
-        "finished_at": "2026-02-25 09:24:35"
+        "finished_at": "2026-02-25 09:24:35",
+        "ref_imgs": []
       },
       {
         "id": 170,
@@ -1001,10 +1028,11 @@
         "resolution": "480P",
         "seed": 1064,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c07_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c07_lumi_01.mp3",
         "started_at": "2026-02-25 09:24:35",
-        "finished_at": "2026-02-25 09:31:52"
+        "finished_at": "2026-02-25 09:31:52",
+        "ref_imgs": []
       },
       {
         "id": 171,
@@ -1019,10 +1047,11 @@
         "resolution": "480P",
         "seed": 1065,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c07_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c07_valen_01.mp3",
         "started_at": "2026-02-25 09:31:52",
-        "finished_at": "2026-02-25 09:39:43"
+        "finished_at": "2026-02-25 09:39:43",
+        "ref_imgs": []
       },
       {
         "id": 172,
@@ -1040,10 +1069,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 09:39:43",
         "finished_at": "2026-02-25 09:54:38"
@@ -1064,10 +1093,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena08.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena08.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 09:54:38",
         "finished_at": "2026-02-25 10:08:31"
@@ -1085,10 +1114,11 @@
         "resolution": "480P",
         "seed": 1072,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c08_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c08_valen_01.mp3",
         "started_at": "2026-02-25 10:08:31",
-        "finished_at": "2026-02-25 10:15:58"
+        "finished_at": "2026-02-25 10:15:58",
+        "ref_imgs": []
       },
       {
         "id": 175,
@@ -1103,10 +1133,11 @@
         "resolution": "480P",
         "seed": 1073,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c08_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c08_caio_01.mp3",
         "started_at": "2026-02-25 10:15:58",
-        "finished_at": "2026-02-25 10:23:07"
+        "finished_at": "2026-02-25 10:23:07",
+        "ref_imgs": []
       },
       {
         "id": 176,
@@ -1121,10 +1152,11 @@
         "resolution": "480P",
         "seed": 1074,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c08_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c08_maya_01.mp3",
         "started_at": "2026-02-25 10:23:07",
-        "finished_at": "2026-02-25 10:30:24"
+        "finished_at": "2026-02-25 10:30:24",
+        "ref_imgs": []
       },
       {
         "id": 177,
@@ -1142,10 +1174,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 10:30:24",
         "finished_at": "2026-02-25 10:41:55"
@@ -1166,10 +1198,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena09.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena09.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 10:41:55",
         "finished_at": "2026-02-25 10:56:05"
@@ -1187,10 +1219,11 @@
         "resolution": "480P",
         "seed": 1082,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c09_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c09_maya_01.mp3",
         "started_at": "2026-02-25 10:56:05",
-        "finished_at": "2026-02-25 11:03:58"
+        "finished_at": "2026-02-25 11:03:58",
+        "ref_imgs": []
       },
       {
         "id": 180,
@@ -1205,10 +1238,11 @@
         "resolution": "480P",
         "seed": 1083,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c09_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c09_caio_01.mp3",
         "started_at": "2026-02-25 11:03:58",
-        "finished_at": "2026-02-25 11:11:08"
+        "finished_at": "2026-02-25 11:11:08",
+        "ref_imgs": []
       },
       {
         "id": 181,
@@ -1223,10 +1257,11 @@
         "resolution": "480P",
         "seed": 1084,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c09_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c09_lumi_01.mp3",
         "started_at": "2026-02-25 11:11:08",
-        "finished_at": "2026-02-25 11:18:08"
+        "finished_at": "2026-02-25 11:18:08",
+        "ref_imgs": []
       },
       {
         "id": 182,
@@ -1241,10 +1276,11 @@
         "resolution": "480P",
         "seed": 1085,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c09_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c09_valen_01.mp3",
         "started_at": "2026-02-25 11:18:08",
-        "finished_at": "2026-02-25 11:25:22"
+        "finished_at": "2026-02-25 11:25:22",
+        "ref_imgs": []
       },
       {
         "id": 183,
@@ -1262,10 +1298,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 11:25:22",
         "finished_at": "2026-02-25 11:43:39"
@@ -1286,10 +1322,10 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/cena10.png",
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/episodios/EP001/imagens/cena10.png",
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 11:43:39",
         "finished_at": "2026-02-25 11:57:11"
@@ -1307,10 +1343,11 @@
         "resolution": "480P",
         "seed": 1092,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/lumi.png",
-        "input_audio": "uploads/inetusx/eps01/c10_lumi_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/lumi.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c10_lumi_01.mp3",
         "started_at": "2026-02-25 11:57:11",
-        "finished_at": "2026-02-25 12:06:43"
+        "finished_at": "2026-02-25 12:06:43",
+        "ref_imgs": []
       },
       {
         "id": 186,
@@ -1325,10 +1362,11 @@
         "resolution": "480P",
         "seed": 1093,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/caio.png",
-        "input_audio": "uploads/inetusx/eps01/c10_caio_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/caio.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c10_caio_01.mp3",
         "started_at": "2026-02-25 12:06:43",
-        "finished_at": "2026-02-25 12:14:15"
+        "finished_at": "2026-02-25 12:14:15",
+        "ref_imgs": []
       },
       {
         "id": 187,
@@ -1343,10 +1381,11 @@
         "resolution": "480P",
         "seed": 1094,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/maya.png",
-        "input_audio": "uploads/inetusx/eps01/c10_maya_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/maya.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c10_maya_01.mp3",
         "started_at": "2026-02-25 12:14:15",
-        "finished_at": "2026-02-25 12:21:53"
+        "finished_at": "2026-02-25 12:21:53",
+        "ref_imgs": []
       },
       {
         "id": 188,
@@ -1361,10 +1400,11 @@
         "resolution": "480P",
         "seed": 1095,
         "low_vram": true,
-        "input_image": "uploads/inetusx/eps01/vana.png",
-        "input_audio": "uploads/inetusx/eps01/c10_valen_01.mp3",
+        "input_image": "projetos/INETUSX/imagens/vana.png",
+        "input_audio": "projetos/INETUSX/episodios/EP001/audios/c10_valen_01.mp3",
         "started_at": "2026-02-25 12:21:53",
-        "finished_at": "2026-02-25 12:37:45"
+        "finished_at": "2026-02-25 12:37:45",
+        "ref_imgs": []
       },
       {
         "id": 189,
@@ -1382,16 +1422,18 @@
         "offload": true,
         "low_vram": false,
         "ref_imgs": [
-          "uploads/inetusx/eps01/vana.png",
-          "uploads/inetusx/eps01/lumi.png",
-          "uploads/inetusx/eps01/maya.png",
-          "uploads/inetusx/eps01/caio.png"
+          "projetos/INETUSX/imagens/vana.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/imagens/caio.png"
         ],
         "started_at": "2026-02-25 12:37:45",
         "finished_at": "2026-02-25 12:59:32"
       }
     ],
-    "created_at": "2026-02-25 02:10:26"
+    "created_at": "2026-02-25 02:10:26",
+    "project": "INETUSX",
+    "ep_code": "EP001"
   },
   {
     "id": 16,
@@ -2235,19 +2277,19 @@
     "id": 18,
     "name": "ep6 - Econtro dos Pets",
     "project": "INETUSX",
-    "status": "idle",
+    "status": "done",
     "jobs": [
       {
         "id": 306,
         "nq_id": 18,
         "nq_job_index": 0,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 01 — Dia dos Pets: A Turma Chega com Seus Animais",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1001_2026-02-27_06-20-34.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Hoje é um dia muito especial na escola do futuro! Uma vez por mês, todos podem trazer seus pets para a aula. E cada pet usa uma coleira inteligente que garante que a diversão seja só alegria — sem confusão e sem perseguição. A turma está animadíssima!",
-        "duration": 14,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 classroom with holographic screens and adaptive lighting, group of students entering with pets wearing glowing smart collars, vibrant warm welcoming atmosphere, detailed futuristic interior, wide establishing shot, colorful and energetic",
         "low_vram": false,
         "offload": false,
@@ -2263,19 +2305,21 @@
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
         "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_01_Dia_dos_Pets_A_Turma_Chega_co.mp3",
-        "started_at": "2026-02-26 23:10:46"
+        "started_at": "2026-02-27 05:17:09",
+        "finished_at": "2026-02-27 06:20:40",
+        "num_inference_steps": 4
       },
       {
         "id": 307,
         "nq_id": 18,
         "nq_job_index": 1,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 02 — Maya Apresenta Fifi, a Gatinha",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1002_2026-02-27_11-48-52.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Maya: Gente, essa é a Fifi! Ela é a gata mais talentosa do mundo! Com a coleirinha inteligente dela, ela consegue projetar hologramas dos meus desenhos e dançar com eles no ar! Ela é literalmente arte em movimento! Podem chegar mais perto, ela é super tranquila!",
-        "duration": 19,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, expressive creative teenage girl Maya holding a cat named Fifi with glowing smart collar at the front of the class, holographic display panel behind her, students watching excitedly, warm amber lighting, medium shot, vibrant and detailed",
         "low_vram": false,
         "offload": false,
@@ -2290,19 +2334,22 @@
         "seed": 1002,
         "task_type": "reference_to_video",
         "voice_id": "FGY2WhTYpPnrIDTdsKH5",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_02_Maya_Apresenta_Fifi_a_Gatinha.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_02_Maya_Apresenta_Fifi_a_Gatinha.mp3",
+        "started_at": "2026-02-27 11:36:48",
+        "finished_at": "2026-02-27 11:49:04",
+        "num_inference_steps": 4
       },
       {
         "id": 308,
         "nq_id": 18,
         "nq_job_index": 2,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 03 — Lumi Apresenta Natui, o Ratinho",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1003_2026-02-27_12-01-21.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Pessoal, eu sei que ele parece pequeno, mas o Natui é incrível! A coleirinha dele se conecta ao meu sistema de análise e juntos conseguimos resolver qualquer quebra-cabeça de lógica em segundos. Ele é meu parceiro de raciocínio! Maior que parece, pode acreditar.",
-        "duration": 22,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, empathetic teenage girl Lumi carefully holding a tiny mouse with a miniature glowing smart collar, holographic data streams and analytical graphs floating around, students leaning forward with curiosity, soft blue and white tones, medium shot, warm and detailed",
         "low_vram": false,
         "offload": false,
@@ -2317,19 +2364,22 @@
         "seed": 1003,
         "task_type": "reference_to_video",
         "voice_id": "vibfi5nlk3hs8Mtvf9Oy",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_03_Lumi_Apresenta_Natui_o_Ratinh.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_03_Lumi_Apresenta_Natui_o_Ratinh.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 11:49:05",
+        "finished_at": "2026-02-27 12:01:25"
       },
       {
         "id": 309,
         "nq_id": 18,
         "nq_job_index": 3,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 04 — Valen Apresenta Neve, o Cachorro Maremano",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1004_2026-02-27_12-15-43.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Prestem atenção, porque isso aqui é nível outro! Esse é o Neve. Sim, ele é gigante. E sim, ele parece um leão branco. Mas o que a coleira dele faz é simplesmente impossível: ele projeta um campo de proteção holográfico em volta de qualquer pessoa que eu indicar. Ele é meu guarda-costas pessoal!",
-        "duration": 26,
+        "duration": 7,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, confident teenage girl Valen standing with crossed arms next to a fluffy white Maremma sheepdog with glowing smart collar, students looking wide-eyed and impressed, dramatic warm lighting from classroom panels, low angle shot, vibrant and dynamic",
         "low_vram": false,
         "offload": false,
@@ -2344,19 +2394,22 @@
         "seed": 1004,
         "task_type": "reference_to_video",
         "voice_id": "FIEA0c5UHH9JnvWaQrXS",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_04_Valen_Apresenta_Neve_o_Cachor.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_04_Valen_Apresenta_Neve_o_Cachor.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 12:01:25",
+        "finished_at": "2026-02-27 12:15:47"
       },
       {
         "id": 310,
         "nq_id": 18,
         "nq_job_index": 4,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 05 — Caio Apresenta Roc, o Sapo",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1005_2026-02-27_12-28-07.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Eu sei o que vocês estão pensando. Um sapo? Mas esperem. O Roc não é qualquer anfíbio. A coleira dele sincroniza com meu sistema de reconhecimento de padrões e ele consegue detectar mudanças no ambiente com até três horas de antecedência. É como ter um sensor biológico de campo ao vivo.",
-        "duration": 17,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, calm analytical teenage boy Caio holding a colorful toad with tiny glowing smart collar, environmental holographic data charts floating beside him, students looking surprised and intrigued, soft cool lighting, medium shot, detailed futuristic school setting",
         "low_vram": false,
         "offload": false,
@@ -2371,19 +2424,22 @@
         "seed": 1005,
         "task_type": "reference_to_video",
         "voice_id": "UPTmB6OygMADpd4LOwE5",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_05_Caio_Apresenta_Roc_o_Sapo.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_05_Caio_Apresenta_Roc_o_Sapo.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 12:15:47",
+        "finished_at": "2026-02-27 12:28:11"
       },
       {
         "id": 311,
         "nq_id": 18,
         "nq_job_index": 5,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 06 — Rosinha e Ale em Destaque na Sala",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1006_2026-02-27_12-40-32.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": " E as surpresas não paravam! Rosinha, a porquinha que memorizava sequências de dança e as replicava com perfeição, arrancou risadas de todos. Já o Ale, o pastor-alemão, impressionou com seu escaneamento de presença em tempo real. Cada pet era único — exatamente como seu dono.",
-        "duration": 17,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, a cute small pink pig and a noble German Shepherd both wearing glowing smart collars presented at the front of class, students cheering and clapping, colorful holographic stat displays on the walls, warm playful pink and gold lighting, wide shot",
         "low_vram": false,
         "offload": false,
@@ -2398,19 +2454,22 @@
         "seed": 1006,
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_06_Rosinha_e_Ale_em_Destaque_na_S.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_06_Rosinha_e_Ale_em_Destaque_na_S.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 12:28:12",
+        "finished_at": "2026-02-27 12:40:38"
       },
       {
         "id": 312,
         "nq_id": 18,
         "nq_job_index": 6,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 07 — PIX-Z Analisa as Coleiras Inteligentes",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1007_2026-02-27_12-54-56.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
         "audio_text": "Análise concluída em 0.003 segundos! Cada coleira emite frequências biométricas únicas sincronizadas com o perfil emocional e cognitivo do seu dono. Fascinante! Vocês e seus pets formam uma simbiose de evolução acelerada. Vocês são... equipes perfeitas.",
-        "duration": 18,
+        "duration": 7,
         "image_prompt": "anime style illustration, futuristic 2030 classroom, cute robot PIX-Z scanning pets wearing glowing smart collars with holographic analysis beams, biometric data streams and ability charts filling the displays, students watching with amusement and curiosity, vibrant cyan and blue tech colors, medium shot, detailed",
         "low_vram": false,
         "offload": false,
@@ -2425,19 +2484,22 @@
         "seed": 1007,
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_07_PIX-Z_Analisa_as_Coleiras_Inte.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_07_PIX-Z_Analisa_as_Coleiras_Inte.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 12:40:38",
+        "finished_at": "2026-02-27 12:55:00"
       },
       {
         "id": 313,
         "nq_id": 18,
         "nq_job_index": 7,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 08 — Hora de Brincar: Todos para o Pátio!",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1008_2026-02-27_19-55-08.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts_1.mp3",
         "audio_text": " Muito bem, pessoal! Agora é hora de ir para o pátio e deixar os pets se divertirem de verdade! As coleiras garantem que vai ser só alegria! Todos para o pátio — vamos lá!",
-        "duration": 10,
+        "duration": 5,
         "image_prompt": "anime style illustration, futuristic school transition from indoor classroom to colorful outdoor courtyard, students and pets with glowing smart collars excitedly rushing through open doors, bright bioluminescent grass visible outside, dynamic energetic composition, wide shot showing both interior and exterior, vibrant upbeat atmosphere",
         "low_vram": false,
         "offload": false,
@@ -2446,32 +2508,35 @@
           "projetos/INETUSX/episodios/EP006/imagens/Cena_08_Hora_de_Brincar_Todos_para_o_.png",
           "projetos/INETUSX/imagens/vana.png",
           "projetos/INETUSX/imagens/escola.png",
-          "projetos/INETUSX/imagens/Pátio_da_escola_futurista.png"
+          "projetos/INETUSX/episodios/EP006/imagens/Cena_09_Pets_Brincando_no_Patio_Futuri.png"
         ],
         "resolution": "540P",
         "seed": 1008,
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_08_Hora_de_Brincar_Todos_para_o_.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_08_Hora_de_Brincar_Todos_para_o_.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 19:44:58",
+        "finished_at": "2026-02-27 19:55:14"
       },
       {
         "id": 314,
         "nq_id": 18,
         "nq_job_index": 8,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 09 — Pets Brincando no Pátio Futurista",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1009_2026-02-27_20-09-34.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts_1.mp3",
         "audio_text": " No pátio futurista, as coleiras inteligentes garantiam harmonia total. Os pets corriam, pulavam e exploravam sem nenhuma confusão. Neve galopava pelo campo luminoso, Fifi perseguia borboletas holográficas, Natui explorava labirintos de luz e Ale dominava o circuito de agilidade. Era pura magia.",
-        "duration": 20,
+        "duration": 7,
         "image_prompt": "anime style illustration, futuristic 2030 school courtyard with bioluminescent grass and holographic play stations, multiple pets with glowing smart collars playing freely in open space, students cheering alongside animals, golden afternoon light casting warm glow, wide panoramic shot, vibrant magical and joyful colors",
         "low_vram": false,
         "offload": false,
         "prompt": "Wide panoramic shot of the futuristic school courtyard with bioluminescent synthetic grass and holographic play stations, multiple pets with glowing smart collars playing freely and safely in the open space, Neve running joyfully across the glowing field, Fifi chasing a holographic butterfly, Natui exploring a tiny illuminated maze, Ale racing through a colorful agility course, students laughing and cheering, warm golden afternoon light, anime style, magical and joyful atmosphere",
         "ref_imgs": [
           "projetos/INETUSX/episodios/EP006/imagens/Cena_09_Pets_Brincando_no_Patio_Futuri.png",
-          "projetos/INETUSX/imagens/Pátio_da_escola_futurista.png",
+          "projetos/INETUSX/episodios/EP006/imagens/Cena_09_Pets_Brincando_no_Patio_Futuri.png",
           "projetos/INETUSX/imagens/neve.png",
           "projetos/INETUSX/imagens/fifi.png"
         ],
@@ -2479,26 +2544,29 @@
         "seed": 1009,
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_09_Pets_Brincando_no_Patio_Futuri.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_09_Pets_Brincando_no_Patio_Futuri.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 19:55:14",
+        "finished_at": "2026-02-27 20:09:38"
       },
       {
         "id": 315,
         "nq_id": 18,
         "nq_job_index": 9,
-        "status": "idle",
+        "status": "done",
         "label": "Cena 10 — Encerramento: Um Dia Inesquecível",
         "created_at": "2026-02-26 22:11:53",
-        "output_video": "",
+        "output_video": "result/reference_to_video/1010_2026-02-27_20-32-48.mp4",
         "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts_1.mp3",
         "audio_text": " Ao final do dia, todos chegaram à mesma conclusão: os pets não eram apenas animais. Eram parceiros, aliados e parte essencial de quem cada um deles era. Naquele pátio futurista, humanos, robôs e animais descobriram que juntos, eram algo ainda mais incrível do que qualquer um imaginava.",
-        "duration": 18,
+        "duration": 6,
         "image_prompt": "anime style illustration, futuristic 2030 school courtyard at golden hour, all main characters together with their pets in a warm group embrace, glowing smart collars on each animal, soft golden light and floating holographic hearts, bioluminescent grass, wide emotional establishing shot, vibrant warm colors, heartwarming and hopeful",
         "low_vram": false,
         "offload": false,
         "prompt": "Wide emotional group shot in the futuristic school courtyard at golden hour, Valen, Lumi, Maya, Caio and PIX-Z gathered together in a semicircle each embracing their pet, warm golden sunlight casting long soft shadows across the bioluminescent grass, holographic hearts and sparkling stars floating gently in the air around the group, camera slowly pulling back to reveal the full futuristic school backdrop, anime style, deeply heartwarming and hopeful final composition",
         "ref_imgs": [
           "projetos/INETUSX/episodios/EP006/imagens/Cena_10_Encerramento_Um_Dia_Inesqueci.png",
-          "projetos/INETUSX/imagens/Pátio_da_escola_futurista.png",
+          "projetos/INETUSX/episodios/EP006/imagens/Cena_09_Pets_Brincando_no_Patio_Futuri.png",
           "projetos/INETUSX/imagens/vana.png",
           "projetos/INETUSX/imagens/lumi.png"
         ],
@@ -2506,10 +2574,999 @@
         "seed": 1010,
         "task_type": "reference_to_video",
         "voice_id": "I8DgbTbTo03jkAylmgv2",
-        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_10_Encerramento_Um_Dia_Inesqueci.mp3"
+        "input_audio": "projetos/INETUSX/episodios/EP006/audios/Cena_10_Encerramento_Um_Dia_Inesqueci.mp3",
+        "num_inference_steps": 4,
+        "started_at": "2026-02-27 20:20:39",
+        "finished_at": "2026-02-27 20:32:55"
       }
     ],
     "created_at": "2026-02-26 22:11:53",
     "ep_code": "EP006"
+  },
+  {
+    "id": 19,
+    "name": "ep07 - A LUA",
+    "project": "INETUSX",
+    "status": "idle",
+    "jobs": [
+      {
+        "id": 316,
+        "nq_id": 19,
+        "nq_job_index": 0,
+        "status": "idle",
+        "label": "Cena 01 — Abertura: A Aula da Lua Começa",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Bom dia, turma! Hoje vamos embarcar em uma viagem incrível sem sair daqui da sala. Vamos aprender tudo sobre a Lua! O nosso fiel satélite natural, que orbita a Terra há mais de quatro bilhões de anos.",
+        "duration": 11,
+        "image_prompt": "Anime style illustration, 2030 futuristic classroom with holographic Moon display activating, a sleek robot teacher at the front with glowing blue eyes, three teenage students sitting at interactive glowing desks with curious expressions, blue and purple ambient lighting, wide establishing shot, vibrant educational atmosphere",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Wide establishing shot of a futuristic 2030 classroom. PIX-Z robot teacher stands at the front, activating a large holographic interface. The central display lights up revealing the Moon rotating slowly. Students Lumi, Caio and Maya sit at glowing interactive desks looking up in curiosity. Blue ambient lighting, soft camera push-in toward the front display, anime style, sense of wonder and excitement.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_01_Abertura_A_Aula_da_Lua_Comeca.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/imagens/lumi.png"
+        ],
+        "resolution": "540P",
+        "seed": 2001,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "started_at": "",
+        "finished_at": "",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_01_Abertura_A_Aula_da_Lua_Comeca.mp3",
+        "audio_bg_volume": 0.1,
+        "error": ""
+      },
+      {
+        "id": 317,
+        "nq_id": 19,
+        "nq_job_index": 1,
+        "status": "idle",
+        "label": "Cena 02 — Lumi Pergunta: O Que É a Lua?",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Lumi levanta a mão animada e pergunta: Professor PIX-Z, a Lua é um planeta? Por que ela brilha tanto à noite? E por que às vezes aparece de dia também?",
+        "duration": 14,
+        "image_prompt": "Anime style illustration, close-up of a teenage girl with gentle observant expression and bright curious eyes raising her hand, 2030 futuristic classroom background with soft holographic Moon glow, blue glowing interactive desk, warm lighting, detailed expressive character portrait",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Medium close-up shot of Lumi Byte at her futuristic desk, raising her hand with an inquisitive expression, leaning forward slightly with bright curious eyes. Holographic Moon glowing softly behind her in the background classroom. Warm blue ambient lighting, gentle focus on her face, anime style, enthusiastic and collaborative energy.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_02_Lumi_Pergunta_O_Que_E_a_Lua.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/imagens/lumi.png"
+        ],
+        "resolution": "540P",
+        "seed": 2002,
+        "task_type": "reference_to_video",
+        "voice_id": "vibfi5nlk3hs8Mtvf9Oy",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_02_Lumi_Pergunta_O_Que_E_a_Lua.mp3",
+        "started_at": "",
+        "finished_at": "",
+        "audio_bg_volume": 0.1,
+        "input_image": "",
+        "error": ""
+      },
+      {
+        "id": 318,
+        "nq_id": 19,
+        "nq_job_index": 2,
+        "status": "idle",
+        "label": "Cena 03 — Projeção Holográfica: A Lua em Detalhes",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Ótima pergunta, Lumi! A Lua não é um planeta — ela é um satélite natural da Terra. Ela não produz luz própria: ela reflete a luz do Sol! Olha que incrível: a Lua tem 3.474 quilômetros de diâmetro e fica a 384 mil quilômetros da Terra.",
+        "duration": 14,
+        "image_prompt": "Anime style illustration, futuristic classroom with a huge glowing holographic Moon rising above students, silver and blue light reflecting on children's upturned faces, robot teacher at side gesturing toward hologram, scientific data labels floating in the air, volumetric light beams from Moon projection, 2030 technology aesthetic, dramatic upward perspective",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Wide shot of futuristic classroom, PIX-Z robot raises an arm and activates a massive holographic Moon projection that rises above the students. The rotating Moon illuminates the room with silver and gray light. Scientific data labels appear floating around the hologram — diameter 3474 km, distance 384400 km. Students look up in complete awe. Slow dramatic camera tilt upward from student faces to the Moon hologram, anime style, breathtaking sense of wonder.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_03_Projecao_Holografica_A_Lua_em.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Projeção_holográfica_da_Lua.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 2003,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_03_Projecao_Holografica_A_Lua_em.mp3",
+        "started_at": "",
+        "finished_at": "",
+        "audio_bg_volume": 0.1,
+        "error": ""
+      },
+      {
+        "id": 319,
+        "nq_id": 19,
+        "nq_job_index": 3,
+        "status": "idle",
+        "label": "Cena 04 — Vista do Espaço: Órbita e Fases Lunares",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "A Lua dá uma volta completa ao redor da Terra a cada 27 dias. Por isso vemos diferentes formas dela ao longo do mês — as chamadas fases lunares! Lua nova, quarto crescente, lua cheia e quarto minguante. Cada fase tem a sua beleza e importância.",
+        "duration": 15,
+        "image_prompt": "Anime educational illustration, epic space view with Earth at center and Moon in four orbital positions showing all phases, glowing orbit path, scientific holographic labels for each phase, starfield and Milky Way background, vibrant blue silver and black tones, sense of cosmic scale and scientific wonder",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Epic cinematic wide shot of outer space. Earth sits on the left and the Moon orbits around it in a graceful glowing arc. Four positions of the Moon are visible simultaneously representing the phases — new moon, crescent, full moon, quarter. Scientific labels appear holographically. Majestic slow camera rotation around Earth, anime educational style, deep blue and silver cosmic palette, breathtaking scale.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_04_Vista_do_Espaco_Orbita_e_Fase.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Espaço_sideral.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Espaço_sideral_educativo.png"
+        ],
+        "resolution": "540P",
+        "seed": 2004,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_04_Vista_do_Espaco_Orbita_e_Fase.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 320,
+        "nq_id": 19,
+        "nq_job_index": 4,
+        "status": "idle",
+        "label": "Cena 05 — Caio Descobre a Física: Gravidade",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Caio analisa a projeção e explica empolgado: Eu entendi! A Lua e a Terra se atraem por causa da gravidade! É a mesma força que faz uma maçã cair no chão, só que aqui age entre dois mundos inteiros! Isso é física, galera!",
+        "duration": 15,
+        "image_prompt": "Anime style illustration, teenage boy with calm analytical expression pointing at a holographic gravitational force diagram showing Earth and Moon, futuristic 2030 classroom with glowing desks, blue ambient lighting, scientific visualization of gravity lines, detailed confident character design",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Medium shot of Caio Luz at his interactive desk, leaning forward with focused analytical concentration. A small holographic diagram of Earth and Moon with gravitational force lines glows before him. He points at it and speaks confidently to the class. Futuristic classroom background, blue-purple ambient light, anime style, calm intelligent expression full of discovery.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_05_Caio_Descobre_a_Fisica_Gravid.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/imagens/caio.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Projeção_holográfica_da_Lua.png"
+        ],
+        "resolution": "540P",
+        "seed": 2005,
+        "task_type": "reference_to_video",
+        "voice_id": "UPTmB6OygMADpd4LOwE5",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_05_Caio_Descobre_a_Fisica_Gravid.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 321,
+        "nq_id": 19,
+        "nq_job_index": 5,
+        "status": "idle",
+        "label": "Cena 06 — Visualização: A Lua Puxa os Oceanos",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "A gravidade da Lua é tão poderosa que ela puxa os próprios oceanos da Terra! Isso cria as marés. Quando a maré sobe na praia, é a Lua exercendo sua força gravitacional sobre a água. As marés altas e baixas se repetem todos os dias por causa desse efeito lunar.",
+        "duration": 15,
+        "image_prompt": "Anime educational illustration, Earth from space with glowing blue oceans showing tidal bulges pulled toward Moon, holographic gravitational force lines in gold connecting Moon to Earth, scientific diagram aesthetic layered over space scene, deep blue and teal ocean colors, silver Moon, dramatic cosmic atmosphere",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Cinematic wide shot from space showing Earth with vivid blue oceans. Holographic force lines extend from the Moon to both sides of Earth, visibly pulling the water in bulges — the tidal effect. The ocean on the side facing the Moon swells dramatically. Slow camera orbit around Earth, anime educational visualization style, deep blue teal and silver palette, dramatic depiction of invisible physical forces.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_06_Visualizacao_A_Lua_Puxa_os_Oc.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Espaço_sideral.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Espaço_sideral_educativo.png"
+        ],
+        "resolution": "540P",
+        "seed": 2006,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_06_Visualizacao_A_Lua_Puxa_os_Oc.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 322,
+        "nq_id": 19,
+        "nq_job_index": 6,
+        "status": "idle",
+        "label": "Cena 07 — Maya Pergunta: Quanto Pesa na Lua?",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Maya estica a mão para o holograma e pergunta encantada: Mas professor, se a Lua tem gravidade menor, as pessoas pesam menos lá? O professor PIX-Z responde: Exatamente, Maya! A gravidade da Lua é seis vezes menor que a da Terra. Quem pesa 60 quilos aqui pesaria apenas 10 quilos lá!",
+        "duration": 21,
+        "image_prompt": "Anime style illustration, teenage girl with sensitive creative expression and delighted wide eyes reaching out to touch a tiny holographic astronaut bouncing in slow motion above her glowing desk, miniature Moon surface in the hologram, blue and silver holographic light, 2030 classroom background, sense of wonder and joy",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Medium close-up of Maya Flores at her desk, wide-eyed with delight, reaching out to touch a tiny holographic astronaut floating near her desk and bouncing in slow motion on a miniature Moon surface. She laughs softly with wonder. Warm blue holographic light on her face, futuristic classroom in background, anime style, sense of playful magical discovery.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/imagens/maya.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Projeção_holográfica_da_Lua.png"
+        ],
+        "resolution": "540P",
+        "seed": 2007,
+        "task_type": "reference_to_video",
+        "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_07_Maya_Pergunta_Quanto_Pesa_na_.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 323,
+        "nq_id": 19,
+        "nq_job_index": 7,
+        "status": "idle",
+        "label": "Cena 08 — História: Apollo 11 e a Grande Missão",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Em 1969, a humanidade fez algo que parecia impossível: pousar na Lua! A missão Apollo 11, da NASA, levou os astronautas Neil Armstrong, Buzz Aldrin e Michael Collins até a Lua. Depois de quatro dias de viagem pelo espaço, chegou o grande momento!",
+        "duration": 18,
+        "image_prompt": "Anime educational illustration, futuristic classroom with giant holographic projection showing 1969 Saturn V Apollo 11 rocket launch, warm golden fire glow reflecting on two teenage students watching with amazed open expressions, historical meets futuristic aesthetic, dramatic cinematic composition, golden orange mixed with cool blue classroom tones, '1969' in holographic numbers",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Wide shot of futuristic classroom with a large holographic projection showing a retro 1969 rocket launch — the Saturn V rising through smoke and fire. The warm golden light of rocket flames illuminates the faces of Lumi and Caio sitting at their desks, mouths open in awe. The holographic year '1969' glows in the air. PIX-Z narrates with enthusiasm. Slow camera push-in toward the projection. Anime style, historical drama meets future technology.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_08_Historia_Apollo_11_e_a_Grande.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Astronauta_Apollo_na_Lua.png",
+          "projetos/INETUSX/imagens/caio.png"
+        ],
+        "resolution": "540P",
+        "seed": 2008,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_08_Historia_Apollo_11_e_a_Grande.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 324,
+        "nq_id": 19,
+        "nq_job_index": 8,
+        "status": "idle",
+        "label": "Cena 09 — O Primeiro Passo na Lua",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "No dia 20 de julho de 1969, Neil Armstrong desceu a escada do módulo lunar. Ao colocar o pé no solo da Lua, ele disse as palavras mais famosas da história: É um pequeno passo para o homem, mas um gigantesco salto para a humanidade. Aquele momento mudou o mundo para sempre.",
+        "duration": 16,
+        "image_prompt": "Anime cinematic illustration, Apollo astronaut in white spacesuit descending lunar module ladder onto gray lunar surface, boot touching Moon regolith, Earth glowing blue in black starry sky above, lunar module and American flag visible in background, dust particles floating in vacuum, dramatic wide angle shot, epic historical emotional atmosphere, silver gray and deep blue space palette",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Cinematic epic wide shot of the Moon's gray dusty surface stretching to the curved horizon. A small metallic lunar module sits in the background. An astronaut in a white Apollo-era spacesuit descends the ladder slowly, boot touching the gray regolith for the first time. Earth glows blue and white in the black starry sky above. American flag planted in the distance. Dust floats in slow motion. Emotional slow camera pull-back revealing the vast lonely Moon landscape. Anime cinematic style, silver gray and deep black palette, historic grandeur.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_09_O_Primeiro_Passo_na_Lua.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Superfície_lunar.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Astronauta_Apollo_na_Lua.png",
+          "projetos/INETUSX/episodios/EP007/ambiente/Superfície_da_Lua.png"
+        ],
+        "resolution": "540P",
+        "seed": 2009,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_09_O_Primeiro_Passo_na_Lua.mp3",
+        "audio_bg_volume": 0.1
+      },
+      {
+        "id": 325,
+        "nq_id": 19,
+        "nq_job_index": 9,
+        "status": "idle",
+        "label": "Cena 10 — Encerramento: O Próximo Capítulo da Lua",
+        "created_at": "2026-02-27 02:45:30",
+        "output_video": "",
+        "audio_bg": "projetos/INETUSX/audios/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Que aula incrível foi essa, turma! Hoje aprendemos que a Lua é nosso satélite natural, descobrimos as fases lunares, a gravidade lunar, o poder das marés, e vivemos a história épica dos astronautas que pisaram lá. Mas a história da Lua ainda não acabou! No outro dia, vamos aprender algo ainda mais surpreendente: como está sendo a vivência das comunidades que hoje vivem na Lua! Até a próxima, turma!",
+        "duration": 21,
+        "image_prompt": "Anime style illustration, futuristic classroom end-of-class scene with all students sitting with inspired joyful expressions, friendly robot teacher facing forward warmly, soft Moon hologram still glowing in background, classroom windows showing hint of Moon in afternoon sky, warm amber and cool blue mixed lighting, wide group shot, sense of wonder discovery and anticipation",
+        "low_vram": false,
+        "offload": false,
+        "prompt": "Wide shot of futuristic classroom at the end of class. All students sit with inspired glowing expressions — Lumi, Caio and Maya exchanging excited looks with each other. The Moon hologram still glows softly behind PIX-Z who turns to face forward warmly. Through the classroom window in the background, the real Moon is faintly visible in the afternoon sky. Warm hopeful amber and blue mixed lighting, anime style, emotional and forward-looking conclusion, gentle camera slow zoom out.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP007/imagens/Cena_10_Encerramento_O_Proximo_Capitu.png",
+          "projetos/INETUSX/episodios/gen_db4d85cb/ambientes/Sala_de_aula.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/imagens/caio.png"
+        ],
+        "resolution": "540P",
+        "seed": 2010,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "input_audio": "projetos/INETUSX/episodios/EP007/audios/Cena_10_Encerramento_O_Proximo_Capitu.mp3",
+        "audio_bg_volume": 0.1
+      }
+    ],
+    "created_at": "2026-02-27 02:45:30",
+    "ep_code": "EP007"
+  },
+  {
+    "id": 20,
+    "name": "ep08 - A Terra, mar e os Continentes",
+    "project": "INETUSX",
+    "status": "done",
+    "jobs": [
+      {
+        "id": 326,
+        "nq_id": 20,
+        "nq_job_index": 0,
+        "status": "done",
+        "label": "Cena 01 — A Aula Começa: Bem-vindos ao Planeta Terra",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8001_2026-03-01_07-35-10.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: Bom dia, turma! Hoje vamos embarcar em uma viagem pelo planeta mais incrível do universo — o nosso lar: a Terra! Vão precisar prender a respiração!",
+        "duration": 10,
+        "image_prompt": "Anime style 2030 futuristic classroom with circular holographic table, teenage students seated around it, sleek robot teacher activating a large glowing blue-green Earth hologram floating above the table, vibrant classroom lighting, detailed futuristic school interior, wide shot composition.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Wide establishing shot of a futuristic INETUSX classroom, circular holographic table glowing in the center, students Lumi, Maya seated around it. PIX-Z robot stands at the front panel, raising both arms as a giant holographic Earth expands above the table, blue-green light fills the room dramatically. Excited student reactions, slow camera push-in, anime style, warm morning ambient light.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_01_A_Aula_Comeca_Bem-vindos_ao_P.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/imagens/lumi.png"
+        ],
+        "resolution": "540P",
+        "seed": 8001,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_01_A_Aula_Comeca_Bem-vindos_ao_P.mp3",
+        "started_at": "2026-03-01 06:59:41",
+        "finished_at": "2026-03-01 07:35:20",
+        "error": "",
+        "_reset": true
+      },
+      {
+        "id": 327,
+        "nq_id": 20,
+        "nq_job_index": 1,
+        "status": "done",
+        "label": "Cena 02 — Vista do Espaço: O Planeta Azul",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8002_2026-03-01_07-57-24.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z narra: Vendo daqui do espaço, a Terra parece uma bola azul brilhante flutuando no nada. Ela tem 4 bilhões e 500 milhões de anos — e é o único planeta que conhecemos com vida! Incrível, né?",
+        "duration": 12,
+        "image_prompt": "Planet Earth seen from outer space, blue oceans, green-brown continents, glowing thin atmosphere, black starry background, holographic educational data overlays, futuristic visualization aesthetic, cinematic anime illustration, epic scale composition.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Cinematic view of Earth from deep space, the planet slowly rotating, blue oceans dominating, green-brown continents visible, thin luminous atmosphere at edges, black starry void background. Holographic data streams appear around the globe showing numbers and labels. Camera slowly zooms in from outer space toward the planet surface. Epic scale, anime-inspired, dramatic lighting.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_02_Vista_do_Espaco_O_Planeta_Azu.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8002,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_02_Vista_do_Espaco_O_Planeta_Azu.mp3",
+        "started_at": "2026-03-01 07:35:21",
+        "finished_at": "2026-03-01 07:57:29"
+      },
+      {
+        "id": 328,
+        "nq_id": 20,
+        "nq_job_index": 2,
+        "status": "done",
+        "label": "Cena 03 — Lumi Pergunta: Como a Terra Foi Formada?",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8003_2026-03-01_08-19-34.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Lumi diz: PIX-Z, mas como exatamente a Terra foi formada? Ela sempre existiu assim, como uma bola azul linda?",
+        "duration": 10,
+        "image_prompt": "Anime style teenage girl with empathetic observant expression raising hand eagerly, 2030 futuristic INETUSX classroom background with glowing blue holographic Earth behind her, warm ambient light, detailed curious face expression, close-up character illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up shot of Lumi inside the futuristic INETUSX classroom, sitting at the circular holographic table, the blue-green Earth hologram glowing behind her. She raises her hand enthusiastically with a curious and excited expression, leaning slightly forward, eyes bright, anime style soft lighting, warm classroom ambient.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_03_Lumi_Pergunta_Como_a_Terra_Fo.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/lumi.png"
+        ],
+        "resolution": "540P",
+        "seed": 8003,
+        "task_type": "reference_to_video",
+        "voice_id": "vibfi5nlk3hs8Mtvf9Oy",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_03_Lumi_Pergunta_Como_a_Terra_Fo.mp3",
+        "started_at": "2026-03-01 07:57:29",
+        "finished_at": "2026-03-01 08:19:39"
+      },
+      {
+        "id": 329,
+        "nq_id": 20,
+        "nq_job_index": 3,
+        "status": "done",
+        "label": "Cena 04 — PIX-Z Explica: O Nascimento da Terra",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8004_2026-03-01_08-41-56.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z explica: Boa pergunta, Lumi! Há 4,5 bilhões de anos, nuvens de gás e poeira cósmica giravam no espaço. A gravidade foi puxando tudo para o centro — rochas se colidiram, o calor foi imenso, e assim, aos poucos, nasceu nossa Terra!",
+        "duration": 14,
+        "image_prompt": "Sleek futuristic robot teacher gesturing dramatically at a holographic space nebula simulation showing planet Earth forming — swirling gas clouds, asteroid collisions, glowing proto-planet coalescing, futuristic classroom background with students watching, anime educational illustration, vibrant blue and orange nebula colors.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Medium shot of PIX-Z robot standing beside the holographic Earth projection, which morphs into a cosmic nebula simulation showing gas and dust clouds swirling, asteroids colliding, proto-Earth forming from cosmic debris. Dynamic holographic animation surrounds PIX-Z. Classroom visible in the background with students leaning forward in awe. Educational and energetic tone, anime style.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_04_PIX-Z_Explica_O_Nascimento_da.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+        ],
+        "resolution": "540P",
+        "seed": 8004,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_04_PIX-Z_Explica_O_Nascimento_da.mp3",
+        "started_at": "2026-03-01 08:19:39",
+        "finished_at": "2026-03-01 08:42:03"
+      },
+      {
+        "id": 330,
+        "nq_id": 20,
+        "nq_job_index": 4,
+        "status": "done",
+        "label": "Cena 05 — As Camadas da Terra Reveladas",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8005_2026-03-01_09-04-20.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: Agora vamos entrar na Terra! Ela tem quatro camadas: a crosta — onde vivemos e pisamos — o manto, enorme e rochoso, o núcleo externo que é líquido, e lá no centro, o núcleo interno sólido!",
+        "duration": 13,
+        "image_prompt": "Futuristic classroom with glowing holographic Earth cross-section splitting open to reveal colorful geological layers — brown crust, dark red mantle, orange liquid outer core, white solid inner core at center, robot teacher pointing at layers, students leaning in awe, anime educational illustration, detailed layered composition.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "PIX-Z activates a detailed cross-section hologram of Earth's interior that dramatically splits open revealing colorful layers — brown outer crust, dark red mantle, glowing molten orange outer core, brilliant yellow-white solid inner core at center. Students lean in fascinated. Slow camera zoom into the hologram layers, classroom setting, dramatic educational lighting, anime style.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_05_As_Camadas_da_Terra_Reveladas.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+        ],
+        "resolution": "540P",
+        "seed": 8005,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_05_As_Camadas_da_Terra_Reveladas.mp3",
+        "started_at": "2026-03-01 08:42:04",
+        "finished_at": "2026-03-01 09:04:32"
+      },
+      {
+        "id": 331,
+        "nq_id": 20,
+        "nq_job_index": 5,
+        "status": "done",
+        "label": "Cena 06 — Maya Pergunta: Quanto Calor Tem o Núcleo?",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8006_2026-03-01_09-23-43.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Maya diz: Mas... que temperatura tem lá dentro? Olhando aquele núcleo brilhando assim, deve ser quente demais pra qualquer coisa sobreviver!",
+        "duration": 9,
+        "image_prompt": "Anime style teenage girl with sensitive creative expression, wide eyes reflecting orange-red glow of holographic Earth cross-section, futuristic classroom background, amazed and slightly alarmed face with hands pressed together, warm dramatic lighting, close-up detailed anime character illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Maya inside the futuristic INETUSX classroom, eyes wide staring at the glowing cross-section hologram, the orange-red core light reflecting on her face. She turns toward PIX-Z with a fascinated and slightly frightened expression, mouth slightly open, pressing her hands together nervously. Soft anime shading, warm dramatic colors.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_06_Maya_Pergunta_Quanto_Calor_Te.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/maya.png"
+        ],
+        "resolution": "540P",
+        "seed": 8006,
+        "task_type": "reference_to_video",
+        "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_06_Maya_Pergunta_Quanto_Calor_Te.mp3",
+        "started_at": "2026-03-01 09:04:32",
+        "finished_at": "2026-03-01 09:23:49"
+      },
+      {
+        "id": 332,
+        "nq_id": 20,
+        "nq_job_index": 6,
+        "status": "done",
+        "label": "Cena 07 — PIX-Z Revela: Temperaturas Extremas do Interior",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8007_2026-03-01_09-45-40.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z responde: Ótima pergunta, Maya! O manto tem até 1.300 graus. O núcleo externo chega a 4.000 graus — quente o suficiente para derreter ferro! E o núcleo interno atinge 5.700 graus. Mas a pressão lá dentro é tão absurda que o ferro permanece sólido mesmo assim!",
+        "duration": 16,
+        "image_prompt": "Futuristic robot teacher pointing at glowing Earth interior cross-section hologram with floating temperature labels — mantle 1300°C orange, outer core 4000°C red-orange glow, inner core 5700°C intense yellow-white pulse, students in background with shocked expressions, futuristic INETUSX classroom, anime educational illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "PIX-Z stands beside the glowing Earth cross-section hologram, holographic temperature data appears floating next to each layer in fiery orange and red numbers. The inner core pulses with intense yellow-white light as temperature labels highlight 5700°C. PIX-Z extends its arm pointing dramatically at the innermost core. Anime style, educational clarity, students visible in background reacting with shock.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_07_PIX-Z_Revela_Temperaturas_Ext.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8007,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_07_PIX-Z_Revela_Temperaturas_Ext.mp3",
+        "started_at": "2026-03-01 09:23:49",
+        "finished_at": "2026-03-01 09:45:47"
+      },
+      {
+        "id": 333,
+        "nq_id": 20,
+        "nq_job_index": 7,
+        "status": "done",
+        "label": "Cena 08 — Caio Questiona: Qual o Tamanho da Terra?",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8008_2026-03-01_10-05-03.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Caio diz: PIX-Z, mas afinal — qual é o tamanho exato da Terra? Qual é o seu diâmetro? E a circunferência? Tenho curiosidade nos números reais.",
+        "duration": 9,
+        "image_prompt": "Anime style teenage boy with calm analytical expression, arms crossed studying holographic data display in 2030 futuristic INETUSX classroom, soft blue light from holograms illuminating his face, curious strategic look directed upward at teacher, close-up detailed anime character illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Caio at the holographic classroom table, calm and analytical expression, studying data on the holographic display in front of him. He looks up toward PIX-Z with a calculated and curious expression, one eyebrow slightly raised, arms crossed in thoughtful posture. Soft blue holographic light illuminates his face. Anime style, composed intellectual tone.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_08_Caio_Questiona_Qual_o_Tamanho.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/caio.png"
+        ],
+        "resolution": "540P",
+        "seed": 8008,
+        "task_type": "reference_to_video",
+        "voice_id": "UPTmB6OygMADpd4LOwE5",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_08_Caio_Questiona_Qual_o_Tamanho.mp3",
+        "started_at": "2026-03-01 09:45:47",
+        "finished_at": "2026-03-01 10:05:08"
+      },
+      {
+        "id": 334,
+        "nq_id": 20,
+        "nq_job_index": 8,
+        "status": "done",
+        "label": "Cena 09 — PIX-Z Apresenta os Números Gigantes da Terra",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8009_2026-03-01_11-23-43.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: Os números são impressionantes! O diâmetro da Terra é de 12.742 quilômetros. A circunferência no equador tem mais de 40 mil quilômetros — se você andasse em linha reta o dia inteiro, levaria mais de um ano pra dar uma volta! E ela pesa 6 quintilhões de toneladas!",
+        "duration": 16,
+        "image_prompt": "Holographic Earth rotating above futuristic circular holographic table surrounded by floating glowing scientific data — 12,742 km diameter scale bar, 40,075 km equator circumference, 5.97×10²⁴ kg mass label, robot teacher pointing at numbers, four students watching in awe, futuristic INETUSX classroom, anime educational illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "The holographic Earth rotates slowly above the classroom table while PIX-Z projects infographic data around the globe — a scale bar showing 12,742 km diameter glows in electric blue, circumference at equator 40,075 km, mass notation in scientific notation. Wide shot showing all students engaged and amazed. Camera orbits the hologram slowly. Anime educational style, dynamic layout.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_09_PIX-Z_Apresenta_os_Numeros_Gig.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+        ],
+        "resolution": "540P",
+        "seed": 8009,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_09_PIX-Z_Apresenta_os_Numeros_Gig.mp3",
+        "started_at": "2026-03-01 10:05:08",
+        "finished_at": "2026-03-01 11:23:49"
+      },
+      {
+        "id": 335,
+        "nq_id": 20,
+        "nq_job_index": 9,
+        "status": "done",
+        "label": "Cena 10 — Valen Pergunta: E os Oceanos? Onde Termina o Fundo?",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8010_2026-03-01_11-45-51.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Valen diz: A Terra tem muita água — olhando assim do espaço, parece mais oceano do que terra! Onde é o ponto mais fundo de tudo? Quanto fundo vai o oceano?",
+        "duration": 11,
+        "image_prompt": "Anime style teenage girl with determined confident expression, leaning forward boldly at futuristic holographic table, pointing at glowing blue ocean regions on holographic Earth model, 2030 INETUSX classroom background, vibrant warm lighting, assertive pose, close-up detailed illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Valen in the futuristic INETUSX classroom, confident and energetic posture, leaning forward on the holographic table, eyes bright with bold curiosity, pointing at the blue ocean areas on the holographic Earth with an assertive gesture, competitive expression. Warm classroom lighting, anime style.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_10_Valen_Pergunta_E_os_Oceanos_.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/vana.png"
+        ],
+        "resolution": "540P",
+        "seed": 8010,
+        "task_type": "reference_to_video",
+        "voice_id": "FIEA0c5UHH9JnvWaQrXS",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_10_Valen_Pergunta_E_os_Oceanos_.mp3",
+        "started_at": "2026-03-01 11:23:50",
+        "finished_at": "2026-03-01 11:45:58"
+      },
+      {
+        "id": 336,
+        "nq_id": 20,
+        "nq_job_index": 10,
+        "status": "done",
+        "label": "Cena 11 — Mergulho Abissal: A Fossa das Marianas",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8011_2026-03-01_12-07-51.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z narra: O ponto mais fundo da Terra é a Fossa das Marianas, no Oceano Pacífico — tem 11.034 metros de profundidade! É mais fundo do que o Monte Everest é alto! Lá embaixo, a pressão é 1.100 vezes maior do que aqui na superfície. Praticamente nada sobrevive.",
+        "duration": 16,
+        "image_prompt": "Deep ocean abyss descent scene — extreme darkness with bioluminescent blue-green particles, abyssal floor with volcanic vents and sediment visible below, holographic depth indicator showing 11,034m Mariana Trench label, eerie atmospheric pressure visual effects, cinematic scale, anime-inspired detailed illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Dramatic descent into deep ocean darkness — camera moves slowly downward through dark blue water, bioluminescent creatures float past, pressure effects visible as particle distortion increases, the abyssal ocean floor comes into view far below with sediment and volcanic vents glowing faintly. Holographic depth scale appears showing 11,034 meters label. Cinematic, eerie, awe-inspiring, anime-inspired realism.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_11_Mergulho_Abissal_A_Fossa_das_.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8011,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_11_Mergulho_Abissal_A_Fossa_das_.mp3",
+        "started_at": "2026-03-01 11:45:59",
+        "finished_at": "2026-03-01 12:07:56"
+      },
+      {
+        "id": 337,
+        "nq_id": 20,
+        "nq_job_index": 11,
+        "status": "done",
+        "label": "Cena 12 — Lumi Reage: Espantada com o Fundo do Mar",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8012_2026-03-01_12-29-50.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Lumi diz: 11 mil metros... é impossível imaginar isso! Um lugar que a luz do sol nunca chega, onde a pressão esmaga tudo. Quantos mistérios ainda devem existir lá no fundo do mar que a gente nunca descobriu?",
+        "duration": 18,
+        "image_prompt": "Anime style teenage girl with empathetic amazed expression, wide eyes reflecting deep blue holographic ocean glow, both hands pressed on futuristic holographic table, jaw slightly open in awe, 2030 INETUSX classroom warm ambient light, genuine surprised emotional reaction, close-up detailed anime illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Lumi inside the futuristic INETUSX classroom, her face illuminated by the deep blue holographic ocean simulation glowing on the table. Jaw slightly dropped in awe, she presses both hands gently on the table surface, eyes wide, shaking her head slowly in disbelief, then a warm empathetic smile forms. Soft classroom ambient, anime style, genuine emotional reaction.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_12_Lumi_Reage_Espantada_com_o_Fu.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/lumi.png"
+        ],
+        "resolution": "540P",
+        "seed": 8012,
+        "task_type": "reference_to_video",
+        "voice_id": "vibfi5nlk3hs8Mtvf9Oy",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_12_Lumi_Reage_Espantada_com_o_Fu.mp3",
+        "started_at": "2026-03-01 12:07:57",
+        "finished_at": "2026-03-01 12:29:55"
+      },
+      {
+        "id": 338,
+        "nq_id": 20,
+        "nq_job_index": 12,
+        "status": "done",
+        "label": "Cena 13 — PIX-Z Mostra a Pangeia: Um Único Continente",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8013_2026-03-01_12-51-50.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: Mas os continentes nem sempre foram separados assim! Há 300 milhões de anos, toda a terra do planeta formava UM SÓ continente — a Pangeia! Com o tempo, as placas tectônicas foram se movendo — bem devagar, centímetros por ano — e os continentes foram se afastando até chegar onde estão hoje!",
+        "duration": 16,
+        "image_prompt": "Holographic Earth time-lapse animation showing continents drifting backward and merging into Pangaea supercontinent, all landmasses connected forming one giant continent, single ocean Panthalassa surrounding it, holographic geological time arrows, futuristic INETUSX classroom, robot teacher gesturing, students in awe, anime educational illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "PIX-Z manipulates the holographic Earth to rewind geological time — a time-lapse animation shows the current seven continents slowly sliding back together over hundreds of millions of years, merging into the ancient supercontinent Pangaea surrounded by one giant ocean Panthalassa. Students watch in fascination. Wide classroom shot, holographic time arrows indicate geological scale. Anime style, historically epic.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_13_PIX-Z_Mostra_a_Pangeia_Um_Uni.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8013,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_13_PIX-Z_Mostra_a_Pangeia_Um_Uni.mp3",
+        "started_at": "2026-03-01 12:29:55",
+        "finished_at": "2026-03-01 12:51:54"
+      },
+      {
+        "id": 339,
+        "nq_id": 20,
+        "nq_job_index": 13,
+        "status": "done",
+        "label": "Cena 14 — Maya Entusiasmada: O Quebra-Cabeça dos Continentes",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8014_2026-03-01_13-14-16.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Maya diz: É tipo um quebra-cabeça gigante! Olha aqui — se você pegar a América do Sul e deslizar assim, as bordas encaixam quase que perfeitamente na costa da África! Como a gente nunca percebeu isso antes?",
+        "duration": 14,
+        "image_prompt": "Anime style creative teenage girl tracing glowing continent outlines with her finger on futuristic holographic table, artistic glowing trace effect shows South America and Africa coastlines matching up like puzzle pieces, excited passionate expression, 2030 INETUSX classroom warm lighting, detailed close-up anime illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Maya in the futuristic INETUSX classroom, face lit up with creative excitement, she traces the outline of continents on the holographic table surface with her fingertip, the contact creates a glowing digital drawing effect matching South America and Africa's coastlines. She smiles widely with artistic wonder. Anime style, warm soft light, creative passionate moment.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_14_Maya_Entusiasmada_O_Quebra-Ca.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/maya.png"
+        ],
+        "resolution": "540P",
+        "seed": 8014,
+        "task_type": "reference_to_video",
+        "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_14_Maya_Entusiasmada_O_Quebra-Ca.mp3",
+        "started_at": "2026-03-01 12:51:55",
+        "finished_at": "2026-03-01 13:14:21"
+      },
+      {
+        "id": 340,
+        "nq_id": 20,
+        "nq_job_index": 14,
+        "status": "done",
+        "label": "Cena 15 — Caio Localiza: Onde Estamos no Planeta?",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8015_2026-03-01_13-36-18.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Caio diz: E nós estamos aqui — na América do Sul! O Brasil ocupa quase metade do continente inteiro. E a gente tem a maior floresta tropical do mundo, a Amazônia, que influencia o clima de todo o planeta. Isso é muito poder de responsabilidade!",
+        "duration": 14,
+        "image_prompt": "Anime style teenage boy standing confidently at futuristic holographic table, pointing at South America highlighted in bright yellow on rotating holographic Earth globe, Brazil outlined prominently, robot teacher nodding approval beside him, 2030 INETUSX classroom, strategic proud academic pose, detailed anime illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Medium shot of Caio standing up from the holographic table, pointing precisely at South America on the rotating holographic Earth globe, Brazil highlights in bright yellow glow where he points. PIX-Z nods approvingly. Classroom visible around them, strategic confident academic gesture. Anime style, clear educational framing, proud analytical stance.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_15_Caio_Localiza_Onde_Estamos_no.png",
+          "projetos/INETUSX/imagens/caio.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+        ],
+        "resolution": "540P",
+        "seed": 8015,
+        "task_type": "reference_to_video",
+        "voice_id": "UPTmB6OygMADpd4LOwE5",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_15_Caio_Localiza_Onde_Estamos_no.mp3",
+        "started_at": "2026-03-01 13:14:21",
+        "finished_at": "2026-03-01 13:36:23"
+      },
+      {
+        "id": 341,
+        "nq_id": 20,
+        "nq_job_index": 15,
+        "status": "done",
+        "label": "Cena 16 — As Maiores Montanhas do Planeta",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8016_2026-03-01_13-58-41.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z narra: Agora as maiores montanhas! O Monte Everest, no Himalaia, é o pico mais alto da Terra — com 8.849 metros acima do nível do mar! Na América do Sul, os Andes são a cordilheira mais longa do mundo inteiro, com 7.500 quilômetros de extensão!",
+        "duration": 15,
+        "image_prompt": "Epic cinematic aerial view of Himalayan mountain range at golden sunrise, Mount Everest towering as highest peak with snow and ice reflecting golden light, dramatic cloud formations far below the summit, holographic altitude data 8,849m overlaid, scale comparison bar, anime-inspired realistic dramatic illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Cinematic aerial sweep over a dramatic Himalayan mountain range, Mount Everest's iconic pyramid summit rising through clouds above all other peaks, golden sunrise light painting the snow and ice in warm orange hues. Scale comparison hologram appears beside the mountain with altitude label at 8,849 meters. Epic composition, wide-angle drone-like camera movement, awe-inspiring atmosphere, anime-inspired cinematic realism.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_16_As_Maiores_Montanhas_do_Planet.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8016,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_16_As_Maiores_Montanhas_do_Planet.mp3",
+        "started_at": "2026-03-01 13:36:23",
+        "finished_at": "2026-03-01 13:58:52"
+      },
+      {
+        "id": 342,
+        "nq_id": 20,
+        "nq_job_index": 16,
+        "status": "done",
+        "label": "Cena 17 — Valen Reage: Impressionada Pelas Montanhas",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8017_2026-03-01_14-21-11.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "Valen diz: Oito mil e oitocentos metros?! Cara, eu canso de subir dois lances de escada! Como alguém consegue chegar lá no topo desse negócio? Tem que ser corajoso demais!",
+        "duration": 14,
+        "image_prompt": "Anime style teenage girl with exaggerated awe and comedic reaction, leaning dramatically back in futuristic classroom chair, eyes wide looking at holographic scale comparison of tiny human figure beside Mount Everest towering above, jaw dropped in disbelief then breaking into laughter, 2030 INETUSX classroom, vibrant warm lighting, expressive anime illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Close-up of Valen in the futuristic INETUSX classroom, watching the Himalayan hologram fade and be replaced by a scale comparison showing an Everest-sized mountain next to a tiny human figure. Valen's eyes go wide, she leans back dramatically in her chair with an overwhelmed expression, then bursts into genuine surprised laughter. Anime style, comedic-awe reaction, warm classroom ambient.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_17_Valen_Reage_Impressionada_Pel.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/vana.png"
+        ],
+        "resolution": "540P",
+        "seed": 8017,
+        "task_type": "reference_to_video",
+        "voice_id": "FIEA0c5UHH9JnvWaQrXS",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_17_Valen_Reage_Impressionada_Pel.mp3",
+        "started_at": "2026-03-01 13:58:52",
+        "finished_at": "2026-03-01 14:21:16"
+      },
+      {
+        "id": 343,
+        "nq_id": 20,
+        "nq_job_index": 17,
+        "status": "done",
+        "label": "Cena 18 — Os Polos: Ártico e Antártida",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8018_2026-03-01_14-43-14.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: E nos polos da Terra vivemos os ambientes mais extremos! O Ártico ao norte é um oceano congelado — com ursos polares e gelo flutuante. A Antártida ao sul é um continente inteiro coberto de gelo! Tem 26 milhões de quilômetros cúbicos de gelo armazenado. Se tudo derreter, o nível do mar sobe 60 metros!",
+        "duration": 19,
+        "image_prompt": "Arctic polar landscape with endless white ice sheets, green-purple aurora borealis overhead, extreme cold atmosphere with frost mist and wind, cinematic wide shot, Antarctic ice mountain silhouettes visible at horizon, educational holographic data overlay showing polar ice volume, dramatic natural beauty, anime-inspired detailed illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Sweeping cinematic shot over an Arctic polar landscape — vast white ice sheets extend to the horizon, aurora borealis shimmers in green and purple above, wind particles and mist convey extreme cold and isolation. Then a slow pan reveals Antarctic ice mountains rising dramatically. Holographic data about polar ice volume appears overlaid. PIX-Z narrates. Anime-inspired epic natural scenery, desolate beauty.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_18_Os_Polos_Artico_e_Antartida.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Paisagem_Polar_Ártica.png",
+          "projetos/INETUSX/imagens/pix-z.png"
+        ],
+        "resolution": "540P",
+        "seed": 8018,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_18_Os_Polos_Artico_e_Antartida.mp3",
+        "started_at": "2026-03-01 14:21:17",
+        "finished_at": "2026-03-01 14:43:19"
+      },
+      {
+        "id": 344,
+        "nq_id": 20,
+        "nq_job_index": 18,
+        "status": "done",
+        "label": "Cena 19 — O Giro da Terra: Dia, Noite e Estações",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8019_2026-03-01_15-05-37.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z explica: A Terra gira em torno de si mesma uma vez a cada 24 horas — é assim que temos o dia e a noite! Mas ela também está inclinada 23,5 graus. Por causa dessa inclinação, temos as quatro estações do ano! E ao redor do Sol? Ela leva 365 dias para completar uma volta — exatamente um ano!",
+        "duration": 18,
+        "image_prompt": "Holographic Earth rotating above futuristic circular table showing day-night terminator line clearly, one hemisphere lit golden by simulated sunlight the other in blue shadow, 23.5-degree axis tilt highlighted with holographic arrow, orbital path around Sun glowing in classroom space, futuristic INETUSX classroom, students watching, anime educational illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "The holographic Earth rotates above the classroom table showing the day-night terminator line sweeping across continents — one hemisphere bathed in golden sunlight, the other in blue shadow. PIX-Z gestures toward the planet's tilted axis, a holographic orbital path appears showing Earth's yearly journey around the Sun. Students watch the rotating animation with wonder. Anime style, dynamic motion, educational clarity.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_19_O_Giro_da_Terra_Dia_Noite_e_.png",
+          "projetos/INETUSX/imagens/pix-z.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+        ],
+        "resolution": "540P",
+        "seed": 8019,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_19_O_Giro_da_Terra_Dia_Noite_e_.mp3",
+        "started_at": "2026-03-01 14:43:19",
+        "finished_at": "2026-03-01 15:05:50"
+      },
+      {
+        "id": 345,
+        "nq_id": 20,
+        "nq_job_index": 19,
+        "status": "done",
+        "label": "Cena 20 — Conclusão: A Terra É Incrível e É Nossa!",
+        "created_at": "2026-03-01 03:12:46",
+        "output_video": "result/reference_to_video/8020_2026-03-01_15-27-52.mp4",
+        "audio_bg": "projetos/INETUSX/trilha/Lost_Paws_Brave_Hearts.mp3",
+        "audio_text": "PIX-Z diz: Vocês foram incríveis hoje! Aprenderam sobre o nascimento da Terra, suas quatro camadas, os números gigantes, as profundezas do oceano, como os continentes se formaram, onde estamos, as maiores montanhas, os polos e o giro do planeta! Cuidem bem desse lar incrível — porque ele cuida de nós há bilhões de anos!",
+        "duration": 19,
+        "image_prompt": "Anime style 2030 futuristic INETUSX classroom celebration — four teenage students standing around circular holographic table applauding joyfully, glowing blue-green rotating Earth hologram above casting warm light on their smiling faces, robot teacher with raised arms in celebration pose, vibrant triumphant warm lighting, detailed group illustration.",
+        "low_vram": false,
+        "num_inference_steps": 4,
+        "offload": false,
+        "prompt": "Wide triumphant shot of the futuristic INETUSX classroom — all four students Lumi, Maya, Caio, Valen stand around the circular table applauding, the holographic Earth rotates majestically above them casting blue-green light on their smiling faces. PIX-Z raises both arms in celebration. Camera slowly pulls back to reveal the full classroom in warm glowing light. Anime style, uplifting emotional ending, triumphant atmosphere.",
+        "ref_imgs": [
+          "projetos/INETUSX/episodios/EP008/imagens/Cena_20_Conclusao_A_Terra_E_Incrivel_.png",
+          "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png",
+          "projetos/INETUSX/imagens/lumi.png",
+          "projetos/INETUSX/imagens/maya.png"
+        ],
+        "resolution": "540P",
+        "seed": 8020,
+        "task_type": "reference_to_video",
+        "voice_id": "I8DgbTbTo03jkAylmgv2",
+        "audio_bg_volume": 0.02,
+        "input_audio": "projetos/INETUSX/episodios/EP008/audios/Cena_20_Conclusao_A_Terra_E_Incrivel_.mp3",
+        "started_at": "2026-03-01 15:05:50",
+        "finished_at": "2026-03-01 15:27:59"
+      }
+    ],
+    "created_at": "2026-03-01 03:12:46",
+    "ep_code": "EP008",
+    "environments": [
+      {
+        "name": "Sala de Aula INETUSX",
+        "description": "Sala de aula futurista do ano 2030 com mesa holográfica circular no centro emitindo luz azul-verde, cadeiras ergonômicas para adolescentes ao redor, paredes brancas e azuis com painéis tecnológicos, iluminação ambiente suave, painel frontal onde PIX-Z atua como professor-robô",
+        "image_prompt": "Anime style 2030 futuristic INETUSX classroom interior, wide establishing shot, large circular holographic table glowing blue-green in center, ergonomic seats for teenagers arranged around it, sleek white and electric blue walls with tech panels, soft ambient ceiling lighting, robot teacher panel at front, clean minimalist futuristic aesthetic, 16:9 aspect ratio",
+        "existing_ref": "projetos/INETUSX/imagens/escola.png",
+        "generated_ref": "projetos/INETUSX/episodios/EP008/ambiente/Sala_de_Aula_INETUSX.png"
+      },
+      {
+        "name": "Espaço Exterior — Vista da Terra",
+        "description": "Vista cinematográfica da Terra vista do espaço profundo, planeta girando lentamente com oceanos azuis dominantes, continentes verde-marrons visíveis, fina atmosfera luminosa nas bordas, fundo negro com estrelas. Aparece tanto como cena real (Cena 02) quanto como projeção holográfica na sala de aula",
+        "image_prompt": "Cinematic view of planet Earth from deep outer space, slowly rotating blue planet, vast blue oceans dominating, green-brown continents clearly visible, thin glowing luminous atmosphere at edges, black starry void background, realistic space photography style, dramatic natural lighting, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/ambiente/Espaço_Exterior___Vista_da_Terra.png"
+      },
+      {
+        "name": "Fundo do Oceano Abissal — Fossa das Marianas",
+        "description": "Profundezas extremas do oceano em escuridão quase total, criaturas bioluminescentes flutuando em azul-verde, chaminés vulcânicas hidrotermais no fundo lodoso, partículas em suspensão distorcidas pela pressão abissal. Aparece como sequência cinematográfica (Cena 11) e como holograma na sala de aula",
+        "image_prompt": "Deep ocean abyss environment at extreme depth, near-total darkness with bioluminescent blue-green glowing particles, abyssal floor with hydrothermal vents emitting white smoke plumes, fine sediment drifting, eerie atmospheric deep blue-black mood, cinematic underwater descent shot, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/ambiente/Fundo_do_Oceano_Abissal___Fossa_das_Mari.png"
+      },
+      {
+        "name": "Cordilheira Himalaia — Monte Everest",
+        "description": "Varredura aérea cinematográfica sobre a imponente cordilheira himalaia, cume piramidal do Monte Everest se erguendo acima das nuvens, luz dourada do nascer do sol pintando neve e gelo em tons quentes. Aparece como cena cinematográfica real (Cena 16)",
+        "image_prompt": "Epic cinematic aerial sweep over Himalayan mountain range at golden sunrise, Mount Everest iconic pyramid summit rising dramatically above clouds as the highest peak, snow and ice reflecting warm golden-orange sunrise light, dramatic deep shadows on lower peaks, majestic scale conveying extreme height, photorealistic cinematic style, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/ambiente/Cordilheira_Himalaia___Monte_Everest.png"
+      },
+      {
+        "name": "Paisagem Polar Ártica",
+        "description": "Paisagem polar ártica com vastas extensões de gelo branco até o horizonte, aurora boreal verde e roxa cintilando no céu escuro, névoa e partículas de vento transmitindo frio extremo. Aparece como cena cinematográfica real (Cena 18) e referenciada como holograma",
+        "image_prompt": "Sweeping cinematic shot over vast Arctic polar landscape, endless white ice sheets extending to horizon under dark sky, stunning green and purple aurora borealis shimmering overhead, frost mist and fine wind particles conveying extreme cold, dramatic polar atmosphere, photorealistic cinematic style, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/ambiente/Paisagem_Polar_Ártica.png"
+      }
+    ],
+    "new_elements": [
+      {
+        "name": "Projeção Holográfica da Terra Rotacionando",
+        "type": "object",
+        "description": "Holograma da Terra girando acima da mesa circular da sala de aula, azul-verde translúcido e brilhante, flutuando no ar com texturas realistas de oceano e continentes, glow suave emitido para baixo sobre a mesa e os alunos",
+        "image_prompt": "Futuristic holographic projection of planet Earth slowly rotating above a circular table, glowing blue-green translucent hologram floating in mid-air, realistic oceanic and continental surface textures visible through holographic layer, soft blue holographic glow casting downward light, clean sci-fi aesthetic, anime futuristic style, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/elementos/Projeção_Holográfica_da_Terra_Rotacionan.png"
+      },
+      {
+        "name": "Corte Transversal Holográfico da Terra",
+        "type": "object",
+        "description": "Holograma do interior da Terra em corte dramático revelando camadas coloridas — crosta marrom exterior, manto vermelho escuro, núcleo externo laranja derretido, núcleo interno amarelo brilhante pulsante — com rótulos de temperatura flutuando em laranja e vermelho ao lado de cada camada",
+        "image_prompt": "Futuristic holographic Earth cross-section dramatically split open showing colorful geological interior layers — thin brown outer crust, thick dark red mantle, glowing molten orange outer core, brilliant pulsing yellow inner core — floating fiery orange and red temperature data labels beside each layer, vivid holographic glow, anime futuristic style, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/elementos/Corte_Transversal_Holográfico_da_Terra.png"
+      },
+      {
+        "name": "Animação Holográfica da Pangeia",
+        "type": "object",
+        "description": "Animação holográfica em time-lapse mostrando os sete continentes atuais deslizando de volta no tempo geológico e fundindo-se no supercontinente único Pangeia, linhas de deriva continental visíveis no movimento, massa única interligada como um quebra-cabeça encaixado",
+        "image_prompt": "Holographic time-lapse animation showing seven continents slowly drifting backward through geological time and merging together into Pangaea single supercontinent, all landmasses interlocked like puzzle pieces forming one unified giant continent, dynamic drift trajectory lines glowing, translucent blue holographic projection style, anime futuristic aesthetic, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/elementos/Animação_Holográfica_da_Pangeia.png"
+      },
+      {
+        "name": "Infográfico Holográfico Científico da Terra",
+        "type": "object",
+        "description": "Painel de dados científicos flutuantes ao redor do globo holográfico — barra de escala de 12.742 km de diâmetro em azul elétrico, valor de circunferência, dados de temperatura das camadas, linhas de latitude/longitude iluminadas, interface de dados científicos futurista",
+        "image_prompt": "Futuristic holographic scientific data infographic floating around a holographic Earth globe — glowing electric blue scale bar showing 12742 km diameter, circumference value, temperature readings, latitude and longitude grid lines, clean data visualization labels in electric blue and white, sci-fi UI aesthetic, anime futuristic style, 16:9 aspect ratio",
+        "existing_ref": null,
+        "generated_ref": "projetos/INETUSX/episodios/EP008/elementos/Infográfico_Holográfico_Científico_da_Te.png"
+      }
+    ],
+    "characters": [
+      "projetos/INETUSX/imagens/lumi.png",
+      "projetos/INETUSX/imagens/pix-z.png",
+      "projetos/INETUSX/imagens/maya.png",
+      "projetos/INETUSX/imagens/caio.png",
+      "projetos/INETUSX/imagens/vana.png"
+    ],
+    "figurantes": [
+      "projetos/INETUSX/figurantes/figurantes_escola.png"
+    ]
   }
 ]

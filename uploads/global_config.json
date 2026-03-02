@@ -1,0 +1,9 @@
+{
+  "fal_key": "c994fba2-27d8-4fd7-8a43-7885f7941100:94a96df262cd6cffa4a6022298925dbe",
+  "kie_api_key": "acc3bfebe3708afd221d727ee6d585d1",
+  "kie_image_style": "anime_gacha",
+  "server_host": "192.168.1.91",
+  "image_model": "kie-ai/nano-banana-2",
+  "elevenlabs_key": "sk_abf560909687ee51d3380039bb7991281737de4ebde17835",
+  "elevenlabs_voice_id": "I8DgbTbTo03jkAylmgv2"
+}

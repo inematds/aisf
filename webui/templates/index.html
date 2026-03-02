@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INEMA AI SF StoriesForce 4.0.0</title>
+<title>INEMA AI SF StoriesForce 4.10.3</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; background: #0f0f13; color: #e0e0e0; min-height: 100vh; }
@@ -959,6 +959,26 @@
   .proj-upload-btn.ai-gen { background:#1a1230; border-color:#6a3aed; color:#a78bfa; font-weight:600; }
   .proj-upload-btn.ai-gen:hover { background:#2a1a50; border-color:#9060ff; }
 
+  /* Ref picker chips */
+  .ref-chip { display:flex;align-items:center;gap:4px;background:#141420;border:1px solid #2a2a3a;border-radius:5px;padding:3px 5px;font-size:.65rem;color:#aaa;position:relative;cursor:default }
+  .ref-chip img { width:52px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0 }
+  .ref-chip .ref-chip-src { font-size:.58rem;padding:1px 4px;border-radius:3px;white-space:nowrap }
+  .ref-chip .ref-chip-src.imagens   { background:#1a2a1a;color:#6fcf6f }
+  .ref-chip .ref-chip-src.ambiente  { background:#1a2030;color:#60a5fa }
+  .ref-chip .ref-chip-src.elementos { background:#2a1a30;color:#c084fc }
+  .ref-chip .ref-chip-src.projeto   { background:#2a200a;color:#fbbf24 }
+  .ref-chip .ref-chip-src.figurantes{ background:#2a1a1a;color:#f87171 }
+  .ref-chip .ref-chip-src.outro     { background:#1a1a1a;color:#777 }
+  .ref-chip .ref-chip-del { background:none;border:none;color:#f87171;cursor:pointer;font-size:.75rem;padding:0 2px;line-height:1;flex-shrink:0 }
+  .ref-picker-cat { font-size:.65rem;color:#555;text-transform:uppercase;letter-spacing:.06em;padding:4px 0 3px;margin-top:6px;border-top:1px solid #111 }
+  .ref-picker-cat:first-child { border-top:none;margin-top:0 }
+  .ref-picker-grid { display:flex;flex-wrap:wrap;gap:5px;margin-top:3px }
+  .ref-picker-item { position:relative;cursor:pointer;border:2px solid transparent;border-radius:4px;overflow:hidden;width:70px }
+  .ref-picker-item:hover { border-color:#7c3aed }
+  .ref-picker-item.selected { border-color:#6fcf6f }
+  .ref-picker-item img { width:70px;height:46px;object-fit:cover;display:block }
+  .ref-picker-item .ref-picker-name { font-size:.52rem;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:1px 2px;text-align:center }
+
   /* Project config form */
   .proj-config-form { padding:10px 14px 14px; display:flex; flex-direction:column; gap:10px; }
   .proj-config-row  { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
@@ -1011,7 +1031,7 @@
 <body>
 
 <header>
-  <h1>INEMA AI SF <span style="color:#e0e0e0">StoriesForce</span> <span class="ver">4.<span class="feat" title="0 recursos adicionados">0</span>.<span class="fix" title="0 correções">0</span></span></h1>
+  <h1>INEMA AI SF <span style="color:#e0e0e0">StoriesForce</span> <span class="ver">4.<span class="feat" title="10 recursos adicionados">10</span>.<span class="fix" title="3 correções">3</span></span></h1>
   <span>Interface de Geração de Vídeo</span>
 </header>
 
@@ -1335,6 +1355,13 @@
                 <option value="">— selecionar trilha —</option>
               </select>
               <input id="nq-bg-input" class="proj-config-input" style="flex:1;min-width:180px;font-size:.8rem" placeholder="ou cole o path manualmente" oninput="onBgInputChange(this.value)">
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#a78bfa;background:#13132a;border:1px solid #3730a3;border-radius:5px;padding:4px 10px;white-space:nowrap">
+                📂 Do disco
+                <input type="file" id="nq-bg-file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" style="display:none" onchange="uploadBgFromDisk(this)">
+              </label>
+              <span id="nq-bg-upload-status" style="font-size:.72rem;color:#6fcf6f"></span>
             </div>
             <audio id="nq-bg-preview" controls style="display:none;width:100%;height:36px;border-radius:6px"></audio>
             <div style="display:flex;align-items:center;gap:10px">
@@ -1922,6 +1949,7 @@ const NQ_STATUS_LABEL = { idle: 'Pronto', running: 'Executando', done: 'Concluí
 
 // Map: job.id → job object — avoids embedding JSON in HTML onclick attributes
 const _jobCache = new Map();
+const _gallState = {};  // galeria paginada: { [nqId]: { videos: [], page: 0 } }
 
 let currentNqId = null;
 let _nqDetailWasRunning = false;  // controla frequência do polling do detail
@@ -2659,6 +2687,24 @@ async function toggleSetAudioBgPanel() {
       }
     } catch(_) {}
 
+    // Trilhas locais (uploads/)
+    try {
+      const AUDIO_EXTS = ['.mp3','.wav','.ogg','.m4a','.flac','.aac'];
+      const ul = await fetch('/uploads/list');
+      const ud = await ul.json();
+      const localTrilhas = (ud.docs || []).filter(f => AUDIO_EXTS.some(e => f.name.toLowerCase().endsWith(e)));
+      if (localTrilhas.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = '💻 Local (uploads)';
+        localTrilhas.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.path; opt.textContent = f.name;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+    } catch(_) {}
+
     // Pré-preencher volume atual (primeiro job com audio_bg_volume)
     const j0 = (nq.jobs || []).find(j => j.audio_bg);
     if (j0?.audio_bg_volume != null) {
@@ -2704,6 +2750,53 @@ async function applyAudioBgToAll(clear = false) {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = origText; }
   }
+}
+
+async function uploadBgFromDisk(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const st = document.getElementById('nq-bg-upload-status');
+  if (st) { st.textContent = '⏳ Enviando…'; st.style.color = '#a78bfa'; }
+
+  // Tenta enviar para trilha/ do projeto atual
+  const nqRes = await fetch(`/nqueues/${currentNqId}`).then(r => r.json()).catch(() => ({}));
+  const projName = nqRes.project || '';
+  const uploadUrl = projName
+    ? `/projects/${encodeURIComponent(projName)}/upload/trilha`
+    : null;
+
+  if (!uploadUrl) {
+    // Fallback: usa o path local como está (sem upload real)
+    if (st) { st.textContent = ''; }
+    const fakePath = `uploads/${file.name}`;
+    document.getElementById('nq-bg-input').value = fakePath;
+    onBgInputChange(fakePath);
+    return;
+  }
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(uploadUrl, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro no upload');
+    const path = data.path;
+    // Adiciona ao select como nova opção e seleciona
+    const select = document.getElementById('nq-bg-select');
+    let opt = [...select.options].find(o => o.value === path);
+    if (!opt) {
+      opt = new Option(file.name + ' ✓', path);
+      select.add(opt);
+    }
+    select.value = path;
+    document.getElementById('nq-bg-input').value = path;
+    onBgInputChange(path);
+    if (st) { st.textContent = '✓ ' + file.name; st.style.color = '#6fcf6f'; }
+    setTimeout(() => { if (st) st.textContent = ''; }, 4000);
+  } catch(e) {
+    if (st) { st.textContent = '✗ ' + e.message; st.style.color = '#f87171'; }
+  }
+  input.value = '';
 }
 
 function downloadNqZip(includeSources) {
@@ -3068,16 +3161,47 @@ async function openProject(name) {
 }
 
 async function loadProjectDetail(name) {
-  const res = await fetch(`/projects/${encodeURIComponent(name)}`);
-  const data = await res.json();
+  const [res, cfgRes] = await Promise.all([
+    fetch(`/projects/${encodeURIComponent(name)}`),
+    fetch(`/projects/${encodeURIComponent(name)}/config`),
+  ]);
+  const data    = await res.json();
+  const projCfg = cfgRes.ok ? await cfgRes.json() : {};
   const detail = document.getElementById('proj-detail');
   const FOLDER_LABELS = { imagens: '🖼 Imagens', audios: '🎵 Áudios', trilha: '🎶 Trilha', docs: '📄 Docs', figurantes: '👥 Figurantes' };
   const FOLDER_ACCEPT = { imagens: 'image/*', audios: 'audio/*', trilha: 'audio/*', docs: '*/*', figurantes: 'image/*' };
+
+  const KIE_STYLE_OPTIONS = [
+    ['anime_gacha',    'Anime Gacha/Tech — Genshin, neon, futurista ⭐'],
+    ['anime',          'Anime — Studio Ghibli, soft colors'],
+    ['photorealistic', 'Photorealistic — natural lighting, sharp'],
+    ['cinematic',      'Cinematic — dramatic, teal & orange'],
+    ['illustration',   'Illustration — digital art, vibrant'],
+    ['3d_render',      '3D Render — PBR, octane quality'],
+    ['concept_art',    'Concept Art — matte painting'],
+    ['watercolor',     'Watercolor — soft washes, brush strokes'],
+    ['product',        'Product Shot — studio, commercial'],
+  ];
+  const curStyle = projCfg.image_style || '';
+  const styleOptions = KIE_STYLE_OPTIONS.map(([v, l]) =>
+    `<option value="${v}"${curStyle === v ? ' selected' : ''}>${l}</option>`
+  ).join('');
+  const safeName2 = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
   let html = `<div class="proj-detail-header">
     <button class="nq-action-btn" onclick="refreshProjects()">\u2190 Voltar</button>
     <span class="proj-detail-name">${name}</span>
     <button class="nq-action-btn" onclick="confirmDeleteProject('${name}')" style="background:#2a1010;border-color:#4a2020;color:#f87171">\uD83D\uDDD1 Excluir projeto</button>
+  </div>
+  <div style="padding:8px 14px;border-bottom:1px solid #1a1a2a;background:#0a0a10;display:flex;align-items:center;gap:8px">
+    <span style="font-size:.72rem;color:#666;white-space:nowrap">⚙ Estilo visual:</span>
+    <select id="proj-style-${safeName2}" class="proj-config-input" style="flex:1;font-size:.78rem;padding:4px 8px">
+      <option value="">— Usar estilo global —</option>
+      ${styleOptions}
+    </select>
+    <button class="nq-action-btn run" style="flex-shrink:0;font-size:.72rem;padding:3px 10px"
+      onclick="saveProjectStyle('${safeName2}',this)">💾</button>
+    <span id="proj-style-status-${safeName2}" style="font-size:.7rem;color:#6fcf6f;white-space:nowrap"></span>
   </div>`;
 
   for (const sub of ['imagens', 'figurantes', 'audios', 'trilha', 'docs']) {
@@ -3244,6 +3368,36 @@ async function deleteProjectFile(name, sub, filename) {
   await loadProjectDetail(name);
 }
 
+async function saveProjectStyle(name, btn) {
+  const sel = document.getElementById(`proj-style-${name}`);
+  const style = sel ? sel.value : '';
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳…';
+  try {
+    // Load current config, merge image_style, save back
+    const cfgRes = await fetch(`/projects/${encodeURIComponent(name)}/config`);
+    const cfg = cfgRes.ok ? await cfgRes.json() : {};
+    if (style) cfg.image_style = style;
+    else delete cfg.image_style;
+    const res = await fetch(`/projects/${encodeURIComponent(name)}/config`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(cfg)
+    });
+    btn.disabled = false;
+    const st = document.getElementById(`proj-style-status-${name}`);
+    if (res.ok) {
+      btn.textContent = '✓ Salvo';
+      if (st) st.textContent = style ? `Estilo: ${style}` : 'Usando estilo global';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    } else {
+      btn.textContent = orig;
+      if (st) st.textContent = '✗ Erro ao salvar';
+    }
+  } catch(e) {
+    btn.disabled = false; btn.textContent = orig; alert('Erro: ' + e);
+  }
+}
+
 async function confirmDeleteProject(name) {
   if (!confirm(`Excluir projeto "${name}" e todos os seus arquivos?`)) return;
   const res = await fetch(`/projects/${encodeURIComponent(name)}`, {method:'DELETE'});
@@ -3378,21 +3532,26 @@ async function openEpisodeDetail(nqId, projectName) {
   detail.style.display = 'flex';
   detail.innerHTML = '<div style="color:#555;padding:24px">Carregando\u2026</div>';
 
-  // Fetch NQ + project images em paralelo
-  const [res, projRes] = await Promise.all([
+  // Fetch NQ + project images + project config em paralelo
+  const [res, projRes, cfgRes] = await Promise.all([
     fetch(`/nqueues/${nqId}`),
     projectName ? fetch(`/projects/${encodeURIComponent(projectName)}`) : Promise.resolve(null),
+    projectName ? fetch(`/projects/${encodeURIComponent(projectName)}/config`) : Promise.resolve(null),
   ]);
   if (!res.ok) { detail.innerHTML = '<div style="color:#f87171;padding:24px">Erro ao carregar epis\xF3dio.</div>'; return; }
   const nq = await res.json();
   const jobs = nq.jobs || [];
 
   // Imagens do projeto para o painel de personagens
-  let projImagens = [], projFigurantes = [];
+  let projImagens = [], projFigurantes = [], projImgStyle = '';
   if (projRes && projRes.ok) {
     const pd = await projRes.json();
     projImagens    = (pd.folders?.imagens    || []).map(f => f.path);
     projFigurantes = (pd.folders?.figurantes || []).map(f => f.path);
+  }
+  if (cfgRes && cfgRes.ok) {
+    const pc = await cfgRes.json();
+    projImgStyle = pc.image_style || '';
   }
 
   const STATUS_LABEL = { idle:'Aguardando', running:'Rodando', done:'Conclu\xEDdo', error:'Erro', pending:'Aguardando' };
@@ -3409,19 +3568,38 @@ async function openEpisodeDetail(nqId, projectName) {
       const cls  = STATUS_CLS[st]  || 'idle';
       const lbl  = STATUS_LABEL[st] || st;
       const refs = Array.isArray(j.ref_imgs) ? j.ref_imgs.join(', ') : (j.ref_imgs || '');
+      const hasRefs  = Array.isArray(j.ref_imgs) ? j.ref_imgs.length > 0 : !!j.ref_imgs;
+      const hasAudio = !!j.input_audio;
       const vidBtn = j.output_video
-        ? `<button class="proj-ep-btn run" onclick="playVideoByPath('${j.output_video}')" style="padding:2px 8px;font-size:.72rem">\u25B6 Ver vídeo</button>`
+        ? `<button class="proj-ep-btn run" onclick="event.stopPropagation();playVideoByPath('${j.output_video}')" style="padding:2px 8px;font-size:.72rem">\u25B6 Ver vídeo</button>`
         : '';
+      const imgQvBtn = hasRefs
+        ? `<button class="proj-ep-btn ep-qv-btn" title="Ver imagens de referência" onclick="event.stopPropagation();openEpQv(${nqId},${j.id},'imgs',this)" style="padding:2px 5px;font-size:.72rem">🖼</button>`
+        : '';
+      const audQvBtn = hasAudio
+        ? `<button class="proj-ep-btn ep-qv-btn" title="Ouvir voz/áudio" onclick="event.stopPropagation();openEpQv(${nqId},${j.id},'audio',this)" style="padding:2px 5px;font-size:.72rem">🔊</button>`
+        : '';
+      const regenBtn = !['running','pending'].includes(st)
+        ? `<button class="proj-ep-btn" title="Regenerar vídeo" onclick="event.stopPropagation();regenEpJob(${nqId},${j.id},'${esc(projectName)}',this)" style="padding:2px 6px;font-size:.72rem;color:#86efac;border-color:#1a3a1f">🔁</button>`
+        : '';
+      const delBtn = `<button class="proj-ep-btn" title="Remover cena" onclick="event.stopPropagation();deleteEpJob(${nqId},${j.id},'${esc(projectName)}')" style="padding:2px 6px;font-size:.72rem;color:#f87171;border-color:#3a1a1a">🗑</button>`;
+      const badgeExtra = ['done','error'].includes(st) ? `style="cursor:pointer" title="Clique para resetar status"` : '';
+      const badgeOnclick = ['done','error'].includes(st) ? `onclick="event.stopPropagation();resetEpJobStatus(${nqId},${j.id},this)"` : '';
       return `
       <div class="ep-job-row" id="epjob-${nqId}-${j.id}">
         <div class="ep-job-summary" onclick="toggleEpJob(${nqId},${j.id})" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px">
           <span style="color:#555;font-size:.75rem;min-width:20px">${i+1}.</span>
           <span class="ep-job-label" style="flex:1">${esc(j.label || j.task_type)}</span>
-          <span class="ep-job-badge ${cls}">${lbl}</span>
+          <span class="ep-job-badge ${cls}" ${badgeExtra} ${badgeOnclick}>${lbl}</span>
           <span style="color:#555;font-size:.7rem">${j.resolution||''} ${j.duration ? j.duration+'s' : ''}</span>
+          ${imgQvBtn}
+          ${audQvBtn}
           ${vidBtn}
+          ${regenBtn}
+          ${delBtn}
           <span style="color:#555;font-size:.8rem">\u25BE</span>
         </div>
+        <div id="ep-qv-${nqId}-${j.id}" class="nq-quickview" data-refs="${esc(refs)}" data-audio="${esc(j.input_audio||'')}"></div>
         <div class="ep-job-edit" id="epjob-edit-${nqId}-${j.id}" style="display:none;padding:10px 14px 14px;border-top:1px solid #1a1a2a;background:#09090f">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
             <div>
@@ -3464,11 +3642,72 @@ async function openEpisodeDetail(nqId, projectName) {
             <input class="proj-config-input" id="ej-audiobg-${nqId}-${j.id}" value="${esc(j.audio_bg||'')}" placeholder="ex: projetos/INETUSX/audios/tema.mp3 (ou vazio)">
           </div>
           <div style="margin-bottom:10px">
-            <div class="proj-config-label">Imagens de referência (paths separados por vírgula)</div>
-            <input class="proj-config-input" id="ej-refs-${nqId}-${j.id}" value="${esc(refs)}" placeholder="uploads/foto.jpg, uploads/bg.png">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+              <div class="proj-config-label" style="margin-bottom:0">Imagens de referência</div>
+              <span id="ej-refs-count-${nqId}-${j.id}" style="font-size:.7rem;color:#555">0/4</span>
+              <button onclick="openRefPicker(${nqId},${j.id},'${esc(projectName)}')" style="margin-left:auto;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:5px;color:#a78bfa;font-size:.72rem;padding:2px 8px;cursor:pointer">🖼 Escolher</button>
+            </div>
+            <input type="hidden" id="ej-refs-${nqId}-${j.id}" value="${esc(refs)}">
+            <div id="ej-refs-chips-${nqId}-${j.id}" style="display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:4px;background:#0d0d18;border:1px solid #1a1a2a;border-radius:6px">
+            </div>
+            <div id="ej-refs-picker-${nqId}-${j.id}" style="display:none;margin-top:6px;background:#0a0a14;border:1px solid #2a2a3a;border-radius:6px;padding:8px;max-height:260px;overflow-y:auto"></div>
+            <div style="display:flex;gap:4px;margin-top:5px">
+              <input type="text" id="ej-refs-txt-${nqId}-${j.id}" placeholder="ou cole o path aqui e pressione Enter…" style="flex:1;background:#0d0d18;border:1px solid #1a1a2a;border-radius:5px;color:#aaa;padding:4px 8px;font-size:.72rem;outline:none" onkeydown="if(event.key==='Enter'){addRefFromText(${nqId},${j.id});event.preventDefault()}">
+              <button onclick="addRefFromText(${nqId},${j.id})" style="background:#1a1a2a;border:1px solid #2a2a3a;border-radius:5px;color:#888;font-size:.72rem;padding:2px 8px;cursor:pointer">+</button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <button class="nq-action-btn run" onclick="saveEpJob(${nqId},${j.id},'${esc(j.image_prompt!==undefined?'1':'')}','${esc(j.audio_text!==undefined?'1':'')}')">💾 Salvar</button>
+
+          <div style="border-top:1px solid #1a1a2a;padding-top:10px;margin-bottom:10px">
+            <div style="font-size:.7rem;color:#7c3aed;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">⚙ Parâmetros de Geração — SkyReels</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
+              <div>
+                <div class="proj-config-label">Tipo de geração</div>
+                <select class="proj-config-input" id="ej-tasktype-${nqId}-${j.id}" onchange="onEpTaskTypeChange(${nqId},${j.id},this.value)" style="color:#a78bfa">
+                  ${['reference_to_video','single_shot_extension','shot_switching_extension','talking_avatar'].map(t=>
+                    `<option value="${t}"${(j.task_type||'reference_to_video')===t?' selected':''}>${t.replace(/_/g,' ')}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div>
+                <div class="proj-config-label">Seed</div>
+                <input type="number" class="proj-config-input" id="ej-seed-${nqId}-${j.id}" value="${j.seed??42}" min="0" max="9999999">
+              </div>
+              <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:5px;padding-bottom:3px">
+                <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:#888;cursor:pointer;user-select:none">
+                  <input type="checkbox" id="ej-offload-${nqId}-${j.id}" ${j.offload?'checked':''}>
+                  Offload CPU
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:#888;cursor:pointer;user-select:none">
+                  <input type="checkbox" id="ej-lowvram-${nqId}-${j.id}" ${j.low_vram?'checked':''}>
+                  Low VRAM (FP8)
+                </label>
+              </div>
+            </div>
+            <div id="ej-invid-div-${nqId}-${j.id}" style="margin-bottom:8px;display:none">
+              <div class="proj-config-label">Vídeo de entrada (extensão)</div>
+              <input class="proj-config-input" id="ej-invid-${nqId}-${j.id}" value="${esc(j.input_video||'')}" placeholder="result/reference_to_video/42_....mp4">
+            </div>
+            <div id="ej-avatar-div-${nqId}-${j.id}" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div>
+                <div class="proj-config-label">Imagem retrato (avatar)</div>
+                <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">
+                  <img id="ej-inimg-thumb-${nqId}-${j.id}" src="${j.input_image?'/file/'+esc(j.input_image):''}" onerror="this.style.display='none'" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #2a2a3a;${j.input_image?'':'display:none'}">
+                  <button onclick="openAvatarImgPicker(${nqId},${j.id})" style="background:#1a1a2a;border:1px solid #2a2a3a;border-radius:5px;color:#a78bfa;font-size:.7rem;padding:2px 7px;cursor:pointer;white-space:nowrap">🖼 Escolher</button>
+                </div>
+                <input class="proj-config-input" id="ej-inimg-${nqId}-${j.id}" value="${esc(j.input_image||'')}" placeholder="uploads/retrato.jpg" oninput="updateAvatarThumb(${nqId},${j.id},this.value)">
+                <div id="ej-inimg-picker-${nqId}-${j.id}" style="display:none;margin-top:5px;background:#0a0a14;border:1px solid #2a2a3a;border-radius:6px;padding:8px;max-height:220px;overflow-y:auto"></div>
+              </div>
+              <div>
+                <div class="proj-config-label">Áudio TTS (avatar)</div>
+                <input class="proj-config-input" id="ej-inaud-${nqId}-${j.id}" value="${esc(j.input_audio||'')}" placeholder="uploads/audio.mp3">
+              </div>
+            </div>
+            <div id="ej-taskdesc-${nqId}-${j.id}" style="font-size:.68rem;color:#444;line-height:1.5"></div>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="nq-action-btn run" style="font-size:.8rem;background:#0c200c;border-color:#1a4a1a" onclick="saveAndRunEpJob(${nqId},${j.id},'${esc(j.image_prompt!==undefined?'1':'')}','${esc(j.audio_text!==undefined?'1':'')}','','${esc(projectName)}',this)">▶ Salvar e Gerar</button>
+            <button class="nq-action-btn run" onclick="saveEpJob(${nqId},${j.id},'${esc(j.image_prompt!==undefined?'1':'')}','${esc(j.audio_text!==undefined?'1':'')}','')">💾 Salvar</button>
             <button class="nq-action-btn" onclick="toggleEpJob(${nqId},${j.id})">Cancelar</button>
             <button class="nq-action-btn" style="margin-left:auto;border-color:#4a2020;color:#f87171" onclick="deleteEpJob(${nqId},${j.id},'${esc(projectName)}')">🗑 Remover cena</button>
           </div>
@@ -3551,7 +3790,7 @@ async function openEpisodeDetail(nqId, projectName) {
         <span style="font-size:.8rem;color:#7c3aed;font-weight:700">🌍 Ambientes &amp; Elementos</span>
         <span style="font-size:.72rem;color:#555">(${epEnvironments.length} amb · ${epNewElements.length} elem)</span>
         <span id="ep-prompts-chevron-${nqId}" style="margin-left:auto;color:#555;font-size:.8rem">▾</span>
-        ${hasGenAll ? `<button class="nq-action-btn run" style="font-size:.72rem;padding:2px 10px" onclick="event.stopPropagation();genAllPromptImages(${nqId},this)">🖼 Gerar Todos</button>` : ''}
+        ${hasGenAll ? `<button class="nq-action-btn run" style="font-size:.72rem;padding:2px 10px" onclick="event.stopPropagation();genAllPromptImages(${nqId},'${safeProjName}',this)">🖼 Gerar Imgs Ambientes</button>` : ''}
         <button class="nq-action-btn" style="font-size:.72rem;padding:2px 10px" onclick="event.stopPropagation();analyseEpEnvironments(${nqId},'${safeProjName}',this)">🔄 Re-analisar</button>
       </div>
       <div id="ep-prompts-body-${nqId}" style="display:none;padding:6px 12px 10px">
@@ -3651,7 +3890,7 @@ async function openEpisodeDetail(nqId, projectName) {
     ${descHtml}
     <div style="display:flex;gap:5px;padding:8px 12px;border-bottom:1px solid #1a1a2a;flex-wrap:wrap;align-items:center">
       <button class="proj-ep-btn run" style="font-size:.8rem;padding:4px 14px;border-color:#7c3aed;color:#c4b5fd;background:#1a0a2e"
-        onclick="epGenAll(${nqId},'${safeProjName}',this)" title="Gerar imagens + áudios + vídeos em sequência">⚡ Gerar Tudo</button>
+        onclick="epGenAll(${nqId},'${safeProjName}',this)" title="Gerar imagens de cenas + áudios + vídeos em sequência">⚡ Gerar Episódio</button>
       <span style="color:#2a2a3a;font-size:.8rem">|</span>
       <button class="proj-ep-btn" onclick="epGenImages(${nqId},'${safeProjName}',this)" title="Gerar imagens das cenas via IA">\uD83D\uDDBC Imagens</button>
       <button class="proj-ep-btn" onclick="epGenAudio(${nqId},'${safeProjName}',this)" title="Gerar \xE1udios via ElevenLabs">\uD83C\uDFB5 \xC1udios</button>
@@ -3661,6 +3900,7 @@ async function openEpisodeDetail(nqId, projectName) {
       <span style="color:#2a2a3a;font-size:.8rem">|</span>
       <button class="proj-ep-btn" onclick="openEpisodeGallery(${nqId})" id="ep-gallery-btn-${nqId}" title="Ver assets gerados">\uD83D\uDDC2 Galeria</button>
       <button class="proj-ep-btn" onclick="openAddEpSceneForm(${nqId},'${safeProjName}')" title="Adicionar nova cena ao epis\xF3dio" style="border-color:#22c55e;color:#86efac">+ Cena</button>
+      ${projImgStyle ? `<span style="margin-left:4px;font-size:.68rem;color:#666;border:1px solid #2a2a3a;border-radius:4px;padding:2px 8px;background:#111;white-space:nowrap" title="Estilo de imagem configurado no projeto">🎨 ${projImgStyle}</span>` : ''}
     </div>
     ${promptsHtml}
     ${charsHtml}
@@ -3670,17 +3910,197 @@ async function openEpisodeDetail(nqId, projectName) {
 
 function toggleEpJob(nqId, jobId) {
   const el = document.getElementById(`epjob-edit-${nqId}-${jobId}`);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (!el) return;
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    _renderRefChips(nqId, jobId);
+    const sel = document.getElementById(`ej-tasktype-${nqId}-${jobId}`);
+    if (sel) onEpTaskTypeChange(nqId, jobId, sel.value);
+  }
 }
 
-async function saveEpJob(nqId, jobId, hasImgPrompt, hasAudioText) {
-  const g = id => { const e = document.getElementById(id); return e ? e.value : null; };
+// ── Ref Picker ──────────────────────────────────────────────────────────────
+
+const CAT_LABEL = {imagens:'📸 Cena', ambiente:'🌍 Ambiente', elementos:'🔩 Elemento', projeto:'🎨 Projeto', figurantes:'👥 Figurante', outro:'📁 Outro'};
+const CAT_ORDER = ['imagens','ambiente','elementos','projeto','figurantes'];
+
+function _refCategory(path) {
+  if (path.includes('/imagens/'))   return 'imagens';
+  if (path.includes('/ambiente/'))  return 'ambiente';
+  if (path.includes('/elementos/')) return 'elementos';
+  if (path.includes('/figurantes/'))return 'figurantes';
+  if (path.includes('/projetos/'))  return 'projeto';
+  return 'outro';
+}
+
+function _getRefList(nqId, jobId) {
+  const el = document.getElementById(`ej-refs-${nqId}-${jobId}`);
+  if (!el) return [];
+  return el.value.split(',').map(s=>s.trim()).filter(Boolean);
+}
+
+function _setRefList(nqId, jobId, list) {
+  const el = document.getElementById(`ej-refs-${nqId}-${jobId}`);
+  if (el) el.value = list.join(',');
+  const cnt = document.getElementById(`ej-refs-count-${nqId}-${jobId}`);
+  if (cnt) cnt.textContent = `${list.length}/4`;
+  _renderRefChips(nqId, jobId);
+}
+
+function _renderRefChips(nqId, jobId) {
+  const container = document.getElementById(`ej-refs-chips-${nqId}-${jobId}`);
+  if (!container) return;
+  const list = _getRefList(nqId, jobId);
+  const cnt = document.getElementById(`ej-refs-count-${nqId}-${jobId}`);
+  if (cnt) cnt.textContent = `${list.length}/4`;
+  if (!list.length) {
+    container.innerHTML = '<span style="font-size:.72rem;color:#333;padding:6px 4px">Nenhuma imagem de referência selecionada.</span>';
+    return;
+  }
+  container.innerHTML = list.map((p, i) => {
+    const cat = _refCategory(p);
+    const name = p.split('/').pop();
+    return `<div class="ref-chip" title="${p}">
+      <img src="/file/${p}" onerror="this.style.display='none'" style="width:52px;height:34px;object-fit:cover;border-radius:3px">
+      <div style="display:flex;flex-direction:column;gap:2px;max-width:90px">
+        <span class="ref-chip-src ${cat}">${CAT_LABEL[cat]||cat}</span>
+        <span style="font-size:.58rem;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:88px" title="${name}">${name}</span>
+      </div>
+      <button class="ref-chip-del" onclick="removeRef(${nqId},${jobId},${i})" title="Remover esta referência">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeRef(nqId, jobId, idx) {
+  const list = _getRefList(nqId, jobId);
+  list.splice(idx, 1);
+  _setRefList(nqId, jobId, list);
+  // Atualiza picker se estiver aberto
+  const picker = document.getElementById(`ej-refs-picker-${nqId}-${jobId}`);
+  if (picker && picker.style.display !== 'none') _renderPickerItems(nqId, jobId, picker._cachedData);
+}
+
+async function openRefPicker(nqId, jobId, projectName) {
+  const picker = document.getElementById(`ej-refs-picker-${nqId}-${jobId}`);
+  if (!picker) return;
+  if (picker.style.display !== 'none') { picker.style.display = 'none'; return; }
+  picker.innerHTML = '<span style="font-size:.72rem;color:#555;padding:4px">Carregando…</span>';
+  picker.style.display = 'block';
+  try {
+    const r = await fetch(`/nqueues/${nqId}/available-refs`);
+    const data = await r.json();
+    picker._cachedData = data;
+    _renderPickerItems(nqId, jobId, data);
+  } catch(e) {
+    picker.innerHTML = `<span style="font-size:.72rem;color:#f87171">Erro: ${e.message}</span>`;
+  }
+}
+
+function _renderPickerItems(nqId, jobId, data) {
+  const picker = document.getElementById(`ej-refs-picker-${nqId}-${jobId}`);
+  if (!picker || !data) return;
+  const current = new Set(_getRefList(nqId, jobId));
+  const count = current.size;
+  let html = '';
+  for (const cat of CAT_ORDER) {
+    const items = data[cat] || [];
+    if (!items.length) continue;
+    html += `<div class="ref-picker-cat">${CAT_LABEL[cat]||cat}</div><div class="ref-picker-grid">`;
+    for (const item of items) {
+      const sel = current.has(item.path);
+      const disabled = !sel && count >= 4;
+      html += `<div class="ref-picker-item${sel?' selected':''}" style="${disabled?'opacity:.35;cursor:not-allowed':''}"
+        title="${item.path}" onclick="${disabled?'':'addRef('+nqId+','+jobId+',\''+item.path.replace(/'/g,"\\'")+'\')'}" >
+        <img src="/file/${item.path}" onerror="this.parentElement.style.display='none'" alt="">
+        <div class="ref-picker-name">${item.name.replace(/\.[^.]+$/,'')}</div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  if (!html) html = '<span style="font-size:.72rem;color:#444">Nenhuma imagem disponível.</span>';
+  picker.innerHTML = html;
+}
+
+function addRef(nqId, jobId, path) {
+  const list = _getRefList(nqId, jobId);
+  if (list.length >= 4 || list.includes(path)) return;
+  list.push(path);
+  _setRefList(nqId, jobId, list);
+  const picker = document.getElementById(`ej-refs-picker-${nqId}-${jobId}`);
+  if (picker && picker._cachedData) _renderPickerItems(nqId, jobId, picker._cachedData);
+}
+
+function addRefFromText(nqId, jobId) {
+  const inp = document.getElementById(`ej-refs-txt-${nqId}-${jobId}`);
+  if (!inp) return;
+  const path = inp.value.trim();
+  if (!path) return;
+  addRef(nqId, jobId, path);
+  inp.value = '';
+}
+
+// ── Avatar image picker ──────────────────────────────────────────────────────
+
+function updateAvatarThumb(nqId, jobId, path) {
+  const thumb = document.getElementById(`ej-inimg-thumb-${nqId}-${jobId}`);
+  if (!thumb) return;
+  if (path) { thumb.src = '/file/' + path; thumb.style.display = ''; }
+  else { thumb.style.display = 'none'; }
+}
+
+async function openAvatarImgPicker(nqId, jobId) {
+  const picker = document.getElementById(`ej-inimg-picker-${nqId}-${jobId}`);
+  if (!picker) return;
+  if (picker.style.display !== 'none') { picker.style.display = 'none'; return; }
+  picker.innerHTML = '<span style="font-size:.72rem;color:#555;padding:4px">Carregando…</span>';
+  picker.style.display = 'block';
+  try {
+    const r = await fetch(`/nqueues/${nqId}/available-refs`);
+    const data = await r.json();
+    // Para avatar só mostra projeto + figurantes (personagens)
+    const cats = ['projeto','figurantes','imagens'];
+    let html = '';
+    for (const cat of cats) {
+      const items = data[cat] || [];
+      if (!items.length) continue;
+      html += `<div class="ref-picker-cat">${CAT_LABEL[cat]||cat}</div><div class="ref-picker-grid">`;
+      for (const item of items) {
+        html += `<div class="ref-picker-item" title="${item.path}"
+          onclick="selectAvatarImg(${nqId},${jobId},'${item.path.replace(/'/g,"\\'")}')">
+          <img src="/file/${item.path}" onerror="this.parentElement.style.display='none'" alt="">
+          <div class="ref-picker-name">${item.name.replace(/\.[^.]+$/,'')}</div>
+        </div>`;
+      }
+      html += '</div>';
+    }
+    if (!html) html = '<span style="font-size:.72rem;color:#444">Nenhuma imagem disponível.</span>';
+    picker.innerHTML = html;
+  } catch(e) {
+    picker.innerHTML = `<span style="font-size:.72rem;color:#f87171">Erro: ${e.message}</span>`;
+  }
+}
+
+function selectAvatarImg(nqId, jobId, path) {
+  const inp = document.getElementById(`ej-inimg-${nqId}-${jobId}`);
+  if (inp) { inp.value = path; }
+  updateAvatarThumb(nqId, jobId, path);
+  const picker = document.getElementById(`ej-inimg-picker-${nqId}-${jobId}`);
+  if (picker) picker.style.display = 'none';
+}
+
+function _buildEpJobPayload(nqId, jobId, hasImgPrompt, hasAudioText, taskType) {
+  const g  = id => { const e = document.getElementById(id); return e ? e.value : null; };
+  const cb = id => { const e = document.getElementById(id); return e ? e.checked : false; };
   const payload = {
     label:      g(`ej-label-${nqId}-${jobId}`),
     resolution: g(`ej-res-${nqId}-${jobId}`),
     duration:   Number(g(`ej-dur-${nqId}-${jobId}`)),
     prompt:     g(`ej-prompt-${nqId}-${jobId}`),
     ref_imgs:   (g(`ej-refs-${nqId}-${jobId}`) || '').split(',').map(s=>s.trim()).filter(Boolean),
+    seed:       parseInt(g(`ej-seed-${nqId}-${jobId}`)) || 42,
+    offload:    cb(`ej-offload-${nqId}-${jobId}`),
+    low_vram:   cb(`ej-lowvram-${nqId}-${jobId}`),
   };
   if (hasImgPrompt) payload.image_prompt = g(`ej-imgprompt-${nqId}-${jobId}`) || '';
   if (hasAudioText) payload.audio_text   = g(`ej-audio-${nqId}-${jobId}`)    || '';
@@ -3688,14 +4108,46 @@ async function saveEpJob(nqId, jobId, hasImgPrompt, hasAudioText) {
   if (voiceVal !== null) payload.voice_id = voiceVal.trim();
   const bgVal = g(`ej-audiobg-${nqId}-${jobId}`);
   if (bgVal !== null) payload.audio_bg = bgVal.trim();
+  // task_type lido do select (dinâmico)
+  const tt = g(`ej-tasktype-${nqId}-${jobId}`) || taskType || 'reference_to_video';
+  payload.task_type = tt;
+  // Campos específicos por task_type
+  if (['single_shot_extension','shot_switching_extension'].includes(tt)) {
+    const v = g(`ej-invid-${nqId}-${jobId}`); if (v !== null) payload.input_video = v.trim();
+  }
+  if (tt === 'talking_avatar') {
+    const img = g(`ej-inimg-${nqId}-${jobId}`); if (img !== null) payload.input_image = img.trim();
+    const aud = g(`ej-inaud-${nqId}-${jobId}`); if (aud !== null) payload.input_audio = aud.trim();
+  }
+  return payload;
+}
 
+const _TASK_DESC = {
+  reference_to_video:     'Gera vídeo a partir de imagens de referência + prompt. Usa as "Imagens de referência" acima.',
+  single_shot_extension:  'Estende um vídeo existente de 5–30s no mesmo plano. Requer "Vídeo de entrada".',
+  shot_switching_extension:'Estende com troca de plano cinematográfico (máx. 5s). Requer "Vídeo de entrada".',
+  talking_avatar:         'Gera avatar falante a partir de retrato + áudio (até 200s). Requer "Imagem retrato" e "Áudio TTS".',
+};
+
+function onEpTaskTypeChange(nqId, jobId, val) {
+  const invidDiv  = document.getElementById(`ej-invid-div-${nqId}-${jobId}`);
+  const avatarDiv = document.getElementById(`ej-avatar-div-${nqId}-${jobId}`);
+  const descDiv   = document.getElementById(`ej-taskdesc-${nqId}-${jobId}`);
+  const isExt = ['single_shot_extension','shot_switching_extension'].includes(val);
+  const isAvatar = val === 'talking_avatar';
+  if (invidDiv)  { invidDiv.style.display  = isExt    ? 'block' : 'none'; }
+  if (avatarDiv) { avatarDiv.style.display = isAvatar ? 'grid'  : 'none'; }
+  if (descDiv)   { descDiv.textContent = _TASK_DESC[val] || ''; }
+}
+
+async function saveEpJob(nqId, jobId, hasImgPrompt, hasAudioText, taskType) {
+  const payload = _buildEpJobPayload(nqId, jobId, hasImgPrompt, hasAudioText, taskType);
   const res = await fetch(`/nqueues/${nqId}/jobs/${jobId}`, {
     method: 'PATCH', headers: {'Content-Type':'application/json'},
     body: JSON.stringify(payload),
   });
   if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao salvar'); return; }
   toggleEpJob(nqId, jobId);
-  // Atualiza só o label e badge sem recarregar tudo
   const row = document.getElementById(`epjob-${nqId}-${jobId}`);
   if (row) {
     const labelEl = row.querySelector('.ep-job-label');
@@ -3705,11 +4157,111 @@ async function saveEpJob(nqId, jobId, hasImgPrompt, hasAudioText) {
   }
 }
 
+async function saveAndRunEpJob(nqId, jobId, hasImgPrompt, hasAudioText, taskType, projectName, btn) {
+  btn.disabled = true; btn.textContent = '⏳';
+  const payload = _buildEpJobPayload(nqId, jobId, hasImgPrompt, hasAudioText, taskType);
+  const r1 = await fetch(`/nqueues/${nqId}/jobs/${jobId}`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload),
+  });
+  if (!r1.ok) { const e = await r1.json(); alert(e.error || 'Erro ao salvar'); btn.disabled=false; btn.textContent='▶ Salvar e Gerar'; return; }
+  // Fechar painel e disparar run
+  toggleEpJob(nqId, jobId);
+  const row = document.getElementById(`epjob-${nqId}-${jobId}`);
+  if (row) {
+    const labelEl = row.querySelector('.ep-job-label');
+    if (labelEl) labelEl.textContent = payload.label || '';
+  }
+  const r2 = await fetch(`/nqueues/${nqId}/jobs/${jobId}/run`, {method:'POST'});
+  const d2 = await r2.json();
+  if (!d2.ok) { alert(d2.error || 'Erro ao iniciar geração'); btn.disabled=false; btn.textContent='▶ Salvar e Gerar'; return; }
+  if (row) {
+    const badge = row.querySelector('.ep-job-badge');
+    if (badge) { badge.className = 'ep-job-badge running'; badge.textContent = 'Rodando'; }
+  }
+  btn.disabled = false; btn.textContent = '▶ Salvar e Gerar';
+  connectStreamForNq(nqId);
+}
+
 async function deleteEpJob(nqId, jobId, projectName) {
   if (!confirm('Remover esta cena do episódio?')) return;
   const res = await fetch(`/nqueues/${nqId}/jobs/${jobId}`, {method:'DELETE'});
   if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao remover'); return; }
   await openEpisodeDetail(nqId, projectName);
+}
+
+async function regenEpJob(nqId, jobId, projectName, btn) {
+  if (!confirm('Regenerar esta cena? O vídeo atual será substituído.')) return;
+  btn.disabled = true; btn.textContent = '⏳';
+  try {
+    const res  = await fetch(`/nqueues/${nqId}/jobs/${jobId}/run`, { method: 'POST' });
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.error || 'Erro ao iniciar regeneração');
+      btn.disabled = false; btn.textContent = '🔁';
+      return;
+    }
+    // Atualiza badge na row imediatamente
+    const row = document.getElementById(`epjob-${nqId}-${jobId}`);
+    if (row) {
+      const badge = row.querySelector('.ep-job-badge');
+      if (badge) { badge.className = 'ep-job-badge running'; badge.textContent = 'Rodando'; }
+    }
+    btn.textContent = '🔁'; btn.disabled = false;
+    connectStreamForNq(nqId);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+    btn.disabled = false; btn.textContent = '🔁';
+  }
+}
+
+function openEpQv(nqId, jobId, type, btn) {
+  const panel = document.getElementById(`ep-qv-${nqId}-${jobId}`);
+  if (!panel) return;
+  const row = document.getElementById(`epjob-${nqId}-${jobId}`);
+  const isOpen = panel.classList.contains('visible') && panel.dataset.active === type;
+  if (row) row.querySelectorAll('.ep-qv-btn').forEach(b => b.classList.remove('qv-active'));
+  if (isOpen) {
+    panel.classList.remove('visible');
+    panel.dataset.active = '';
+    panel.innerHTML = '';
+    return;
+  }
+  btn.classList.add('qv-active');
+  panel.dataset.active = type;
+  if (type === 'imgs') {
+    const refs = (panel.dataset.refs || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (refs.length) {
+      panel.innerHTML = `<div class="nq-qv-imgs">${refs.map(p =>
+        `<img src="/file/${p}" title="${p.split('/').pop()}" onclick="window.open('/file/${p}','_blank')" style="cursor:pointer" onerror="this.style.display='none'">`
+      ).join('')}</div>`;
+    } else {
+      panel.innerHTML = '<span style="color:#555;font-size:.8rem;padding:8px;display:block">Sem imagens de referência.</span>';
+    }
+  } else if (type === 'audio') {
+    const src = panel.dataset.audio;
+    panel.innerHTML = src
+      ? `<audio controls src="/file/${src}" style="width:100%"></audio>`
+      : '<span style="color:#555;font-size:.8rem;padding:8px;display:block">Sem áudio.</span>';
+  }
+  panel.classList.add('visible');
+}
+
+async function resetEpJobStatus(nqId, jobId, badge) {
+  if (!confirm('Resetar esta cena para "Aguardando"?')) return;
+  const r = await fetch(`/nqueues/${nqId}/jobs/${jobId}`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({})
+  });
+  if (r.ok) {
+    badge.className = 'ep-job-badge idle';
+    badge.textContent = 'Aguardando';
+    badge.removeAttribute('onclick');
+    badge.removeAttribute('title');
+    badge.style.cursor = '';
+  } else {
+    const e = await r.json(); alert(e.error || 'Erro ao resetar');
+  }
 }
 
 async function quickAnalyseEp(nqId, projectName, btn) {
@@ -4008,7 +4560,7 @@ async function genPromptImage(nqId, itemType, idx, btn) {
   }
 }
 
-async function genAllPromptImages(nqId, btn) {
+async function genAllPromptImages(nqId, projectName, btn) {
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Gerando…';
   const statusEl = document.getElementById(`ep-prompts-status-${nqId}`);
@@ -4030,9 +4582,8 @@ async function genAllPromptImages(nqId, btn) {
           clearInterval(timer);
           btn.textContent = orig; btn.disabled = false;
           if (statusEl) statusEl.textContent = `✓ ${sd.done} imagem(ns) gerada(s)` + (sd.errors?.length ? ` · ${sd.errors.length} erro(s)` : '');
-          // Recarregar painel para mostrar thumbs atualizados
-          const projName = document.querySelector('.proj-detail-name')?.textContent || '';
-          await openEpisodeDetail(nqId, projName);
+          // Recarregar painel preservando o nome do projeto (passado como parâmetro)
+          await openEpisodeDetail(nqId, projectName);
         }
       } catch(e2) { /* rede */ }
     }, 3000);
@@ -4171,16 +4722,12 @@ async function openEpisodeGallery(nqId) {
   }
 
   if (g.videos && g.videos.length) {
-    html += `<div style="margin-bottom:10px"><div style="color:#7c7caa;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">\uD83C\uDFAC V\xEDdeos (${g.videos.length})</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">`;
-    for (const p of g.videos) {
-      const name = p.split('/').pop();
-      html += `<div style="text-align:center">
-        <video src="/file/${encodeURIComponent(p)}" style="width:160px;height:90px;object-fit:cover;border-radius:4px;border:1px solid #1a1a2a;cursor:pointer" onclick="playVideoByPath('${p.replace(/'/g,"\\'")}')"></video>
-        <div style="font-size:.6rem;color:#555;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</div>
-      </div>`;
-    }
-    html += '</div></div>';
+    _gallState[nqId] = { videos: g.videos, page: 0 };
+    html += `<div style="margin-bottom:10px">
+      <div style="color:#7c7caa;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">\uD83C\uDFAC V\xEDdeos (${g.videos.length})</div>
+      <div id="gall-vids-${nqId}" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      <button id="gall-more-${nqId}" style="margin-top:8px;display:none;background:#1a1a2a;border:1px solid #333;border-radius:6px;color:#a78bfa;padding:5px 16px;cursor:pointer;font-size:.78rem">⬇ Carregar mais</button>
+    </div>`;
   }
 
   if (g.trilhas && g.trilhas.length) {
@@ -4201,6 +4748,107 @@ async function openEpisodeGallery(nqId) {
   }
 
   panel.innerHTML = html;
+  // Renderiza vídeos paginados (sem <video> para não pesar)
+  if (g.videos && g.videos.length) _renderGallVideos(nqId);
+}
+
+function _renderGallVideos(nqId) {
+  const state = _gallState[nqId];
+  if (!state) return;
+  const PAGE = 15;
+  const start = state.page * PAGE;
+  const slice = state.videos.slice(start, start + PAGE);
+  const _esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const container = document.getElementById(`gall-vids-${nqId}`);
+  if (!container) return;
+  for (const item of slice) {
+    // suporte a formato antigo (string) e novo (objeto)
+    const p    = typeof item === 'string' ? item : item.path;
+    const jid  = typeof item === 'object' ? item.job_id  : null;
+    const lbl  = typeof item === 'object' ? (item.label || '') : '';
+    const refs = typeof item === 'object' ? (item.refs  || []) : [];
+    const name = p.split('/').pop();
+
+    const card = document.createElement('div');
+    card.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:3px;position:relative';
+
+    // Thumb clicável
+    const thumb = document.createElement('div');
+    thumb.style.cssText = 'width:160px;height:90px;background:#0a0a14;border-radius:4px;border:1px solid #1a1a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer';
+    thumb.innerHTML = `<span style="font-size:1.5rem;color:#444">▶</span><span style="font-size:.56rem;color:#333">ver</span>`;
+    thumb.onclick = () => playVideoByPath(p);
+
+    // Label
+    const nameLbl = document.createElement('div');
+    nameLbl.style.cssText = 'font-size:.6rem;color:#555;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center';
+    nameLbl.title = lbl || name;
+    nameLbl.textContent = lbl || name;
+
+    // Botões de ação
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:3px;align-items:center';
+
+    if (refs.length) {
+      const rBtn = document.createElement('button');
+      rBtn.style.cssText = 'background:none;border:1px solid #2a2a3a;border-radius:3px;color:#888;font-size:.65rem;padding:1px 5px;cursor:pointer';
+      rBtn.title = 'Ver referências';
+      rBtn.textContent = '🖼';
+      let refsOpen = false;
+      rBtn.onclick = () => {
+        let panel = card.querySelector('.gv-refs-panel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.className = 'gv-refs-panel';
+          panel.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;padding:4px;background:#0a0a14;border:1px solid #1a1a2a;border-radius:4px;max-width:340px;position:absolute;top:100%;left:0;z-index:100';
+          refs.forEach(rp => {
+            const img = document.createElement('img');
+            img.src = '/file/' + rp;
+            img.title = rp.split('/').pop();
+            img.style.cssText = 'width:70px;height:45px;object-fit:cover;border-radius:3px;cursor:pointer';
+            img.onerror = () => { img.style.display = 'none'; };
+            img.onclick = e => { e.stopPropagation(); window.open('/file/' + rp, '_blank'); };
+            panel.appendChild(img);
+          });
+          card.style.position = 'relative';
+          card.appendChild(panel);
+          refsOpen = true;
+        } else {
+          panel.remove();
+          refsOpen = false;
+        }
+      };
+      btns.appendChild(rBtn);
+    }
+
+    if (jid) {
+      const dBtn = document.createElement('button');
+      dBtn.style.cssText = 'background:none;border:1px solid #3a1a1a;border-radius:3px;color:#f87171;font-size:.65rem;padding:1px 5px;cursor:pointer';
+      dBtn.title = 'Deletar vídeo';
+      dBtn.textContent = '🗑';
+      dBtn.onclick = async () => {
+        if (!confirm('Deletar este vídeo? O job volta para "Aguardando".')) return;
+        dBtn.disabled = true; dBtn.textContent = '⏳';
+        const r = await fetch(`/nqueues/${nqId}/jobs/${jid}/video`, {method:'DELETE'});
+        if (r.ok) { card.remove(); }
+        else { const e = await r.json(); alert(e.error || 'Erro'); dBtn.disabled = false; dBtn.textContent = '🗑'; }
+      };
+      btns.appendChild(dBtn);
+    }
+
+    card.appendChild(thumb);
+    card.appendChild(nameLbl);
+    if (btns.children.length) card.appendChild(btns);
+    container.appendChild(card);
+  }
+  const moreBtn = document.getElementById(`gall-more-${nqId}`);
+  if (moreBtn) {
+    if (start + PAGE >= state.videos.length) {
+      moreBtn.style.display = 'none';
+    } else {
+      moreBtn.style.display = '';
+      moreBtn.onclick = () => { state.page++; _renderGallVideos(nqId); };
+    }
+  }
 }
 
 // -- Remover episódio do projeto --
@@ -4766,7 +5414,7 @@ function renderGenPreview() {
     if (refs.length) {
       thumbs = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">' +
         refs.slice(0, 4).map(p =>
-          `<img src="/file/${p}" style="height:44px;width:66px;object-fit:cover;border-radius:4px;border:1px solid #333" title="${p.split('/').pop()}">`
+          `<img src="/file/${p}" style="height:44px;width:66px;object-fit:cover;border-radius:4px;border:1px solid #333" title="${p.split('/').pop()}" onerror="this.style.display='none'">`
         ).join('') +
         '</div>';
     }
@@ -4996,6 +5644,7 @@ refreshNamedQueues();
         </label>
         <label style="font-size:.78rem;color:#888;margin-top:6px;display:block">Estilo visual <span style="color:#555">(nano-banana-2 enhancement)</span>
           <select id="gcfg-kie-style" class="modal-input" style="margin-top:4px">
+            <option value="anime_gacha">Anime Gacha/Tech — Genshin, neon, futurista ⭐</option>
             <option value="anime">Anime — Studio Ghibli, soft colors</option>
             <option value="photorealistic">Photorealistic — natural lighting, sharp</option>
             <option value="cinematic">Cinematic — dramatic, teal & orange</option>
