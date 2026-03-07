@@ -2151,17 +2151,34 @@ CENAS ATUAIS (a serem melhoradas):
 {json.dumps(scenes_current, ensure_ascii=False, indent=2)}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-INSTRUÇÕES:
+INSTRUÇÕES — SIGA À RISCA:
 
-Para CADA cena, refaça os seguintes campos:
-1. "prompt" — prompt de vídeo CURTO em inglês (máx 2 frases): tipo de plano + ação + câmera
-2. "audio_text" — fala/narração em português PROPORCIONAL à duração do vídeo:
-   · 5s = máx 15-20 palavras · 8s = máx 25-35 palavras · 10s = máx 40-50 palavras
-3. "image_prompt" — prompt de imagem em inglês para fal.ai/Flux
-4. "voice_id" — extraia dos docs do projeto (tabela de casting). Use o voice_id do personagem que FALA na cena. NÃO invente voice_ids.
+Para CADA cena, REFAÇA os seguintes campos (valores NOVOS, não copie os atuais):
+
+1. "prompt" — prompt de vídeo CURTO em inglês. MÁXIMO 2 frases.
+   Foque SOMENTE em: tipo de plano + ação/movimento + câmera.
+   O modelo anima as imagens de referência — NÃO descreva cenário/cores/roupas.
+   BOM: "Medium shot, girl stands up gesturing excitedly, camera pushes in, anime style"
+   RUIM: "Wide establishing shot of a futuristic holographic classroom in 2030 with..."
+
+2. "audio_text" — fala ou narração em português brasileiro.
+   ⚠ A DURAÇÃO DO VÍDEO É FIXA (campo duration). O texto DEVE ser curto o suficiente para caber:
+   · duration 5s  → máximo 15-20 palavras (1-2 frases curtíssimas)
+   · duration 8s  → máximo 25-35 palavras (2-3 frases curtas)
+   · duration 10s → máximo 40-50 palavras (3-4 frases curtas)
+   ⚠ NUNCA aumente a duration para caber texto longo — ENCURTE o texto!
+   ⚠ NUNCA use prefixo com nome: ERRADO "Lumi explica:" / CORRETO: fala direta
+
+3. "image_prompt" — prompt de imagem em inglês para fal.ai/Flux (manter estilo anime)
+
+4. "voice_id" — use SOMENTE voice_ids da tabela de casting nos docs do projeto.
+   Cada cena deve ter o voice_id do personagem que FALA naquela cena.
+   NÃO invente voice_ids — copie EXATAMENTE da tabela.
+
 5. "audio_bg" — path da trilha (projetos/<nome>/audios/<arquivo>) ou "" se não houver
 
-MANTENHA INALTERADOS: label, index, ref_imgs, task_type, duration, seed, offload, low_vram, resolution
+⚠ CAMPOS QUE NÃO DEVEM SER ALTERADOS (não incluir no retorno):
+   label, index, ref_imgs, task_type, duration, seed, offload, low_vram, resolution
 
 Retorne SOMENTE um array JSON com os campos atualizados para cada cena, no formato:
 [
