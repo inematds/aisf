@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INEMA AI SF StoriesForce 4.10.3</title>
+<title>INEMA AI SF StoriesForce 4.12.5</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; background: #0f0f13; color: #e0e0e0; min-height: 100vh; }
@@ -1031,7 +1031,7 @@
 <body>
 
 <header>
-  <h1>INEMA AI SF <span style="color:#e0e0e0">StoriesForce</span> <span class="ver">4.<span class="feat" title="10 recursos adicionados">10</span>.<span class="fix" title="3 correções">3</span></span></h1>
+  <h1>INEMA AI SF <span style="color:#e0e0e0">StoriesForce</span> <span class="ver">4.<span class="feat" title="12 recursos adicionados">12</span>.<span class="fix" title="5 correções">5</span></span></h1>
   <span>Interface de Geração de Vídeo</span>
 </header>
 
@@ -2847,6 +2847,78 @@ async function finalizeCurrentNq() {
   }
 }
 
+async function finalizeEpisode(nqId) {
+  const btn = document.getElementById(`ep-finalize-btn-${nqId}`);
+  if (!btn) return;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '\u23F3 Concatenando...';
+  try {
+    const res = await fetch(`/nqueues/${nqId}/finalize`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro ao finalizar'); return; }
+    showEpFinalizedVideo(nqId, data.output_video, data.scene_count);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+function showEpFinalizedVideo(nqId, path, sceneCount) {
+  const existingId = `ep-finalized-panel-${nqId}`;
+  const existing = document.getElementById(existingId);
+  if (existing) existing.remove();
+  const panel = document.createElement('div');
+  panel.id = existingId;
+  panel.className = 'nq-finalized-panel';
+  panel.innerHTML = `
+    <div class="nq-finalized-header">
+      <span>\uD83C\uDFAC V\xEDdeo final \u2014 ${sceneCount} cena(s) concatenada(s)</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="dl-btn" href="/download/${path}" download style="font-size:.75rem">\u2B07 Download</a>
+        <button onclick="this.closest('.nq-finalized-panel').remove()">\u2715</button>
+      </div>
+    </div>
+    <video src="/video/${path}" controls style="width:100%;border-radius:6px;margin-top:8px"></video>
+    <div style="margin-top:6px;font-size:.75rem;color:#666">${path}</div>
+  `;
+  const jobsDiv = document.querySelector('.ep-detail-jobs');
+  if (jobsDiv) jobsDiv.parentNode.insertBefore(panel, jobsDiv);
+}
+
+async function recreateEpPrompts(nqId, projectName, btn) {
+  if (!confirm('Isso vai REFAZER os prompts (vídeo, áudio, imagem) de TODAS as cenas.\nAs cenas e refs serão mantidas. Continuar?')) return;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '\u23F3 Recriando\u2026';
+  try {
+    const res = await fetch(`/nqueues/${nqId}/recreate-prompts`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erro ao recriar prompts'); return; }
+    const jobId = data.job_id;
+    const timer = setInterval(async () => {
+      try {
+        const sr = await fetch(`/nqueues/bulk-img-status/${jobId}`);
+        const sd = await sr.json();
+        btn.textContent = '\u23F3 ' + (sd.phase_msg || 'Recriando\u2026');
+        if (sd.status === 'done' || sd.status === 'error') {
+          clearInterval(timer);
+          btn.disabled = false;
+          btn.textContent = orig;
+          if (sd.status === 'error') { alert('Erro: ' + (sd.error || 'desconhecido')); }
+          else { await openEpisodeDetail(nqId, projectName); }
+        }
+      } catch(e2) { /* rede */ }
+    }, 2000);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
 function showFinalizedVideo(path, sceneCount) {
   const existing = document.getElementById('nq-finalized-panel');
   if (existing) existing.remove();
@@ -3897,9 +3969,11 @@ async function openEpisodeDetail(nqId, projectName) {
       <input type="file" id="ep-trilha-input-${nqId}" style="display:none" accept="audio/*" multiple onchange="uploadEpTrilha(${nqId},this)">
       <button class="proj-ep-btn" onclick="document.getElementById('ep-trilha-input-${nqId}').click()" title="Upload de trilha sonora para o epis\xF3dio">\uD83C\uDFB6 Trilha</button>
       <button class="proj-ep-btn run" onclick="runEpisode(${nqId},'${safeProjName}')" title="Gerar v\xEDdeos (rodar fila)">\uD83C\uDFAC V\xEDdeos</button>
+      <button class="proj-ep-btn" id="ep-finalize-btn-${nqId}" onclick="finalizeEpisode(${nqId})" title="Concatenar todas as cenas conclu\xEDdas em um v\xEDdeo final" style="border-color:#f59e0b;color:#fbbf24">\uD83C\uDFAC Finalizar</button>
       <span style="color:#2a2a3a;font-size:.8rem">|</span>
       <button class="proj-ep-btn" onclick="openEpisodeGallery(${nqId})" id="ep-gallery-btn-${nqId}" title="Ver assets gerados">\uD83D\uDDC2 Galeria</button>
       <button class="proj-ep-btn" onclick="openAddEpSceneForm(${nqId},'${safeProjName}')" title="Adicionar nova cena ao epis\xF3dio" style="border-color:#22c55e;color:#86efac">+ Cena</button>
+      <button class="proj-ep-btn" id="ep-recreate-btn-${nqId}" onclick="recreateEpPrompts(${nqId},'${safeProjName}',this)" title="Re-analisar toda a hist\xF3ria e refazer prompts de v\xEDdeo, \xE1udio e imagem de todas as cenas" style="border-color:#f59e0b;color:#fbbf24">\u270D Recriar Prompts</button>
       ${projImgStyle ? `<span style="margin-left:4px;font-size:.68rem;color:#666;border:1px solid #2a2a3a;border-radius:4px;padding:2px 8px;background:#111;white-space:nowrap" title="Estilo de imagem configurado no projeto">🎨 ${projImgStyle}</span>` : ''}
     </div>
     ${promptsHtml}

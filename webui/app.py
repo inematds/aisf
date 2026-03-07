@@ -63,9 +63,17 @@ REFERÊNCIA DAS TASKS DO SKYREELS V3:
 REGRAS OBRIGATÓRIAS — preencha TODOS os campos:
 
 1. PROMPT DE VÍDEO (campo "prompt"):
-   - Descrição cinemática detalhada em INGLÊS
-   - Inclua: composição, iluminação, movimento de câmera, emoção da cena, ação dos personagens
-   - Exemplo: "Medium shot, Valen stands at school corridor, morning sunlight through windows, she turns to look at Lumi, curious expression, soft camera pan right, anime style, 2030 futuristic school"
+   - Prompt CURTO em INGLÊS (máximo 2 frases) — foque em MOVIMENTO e CÂMERA, não em narrativa
+   - O modelo SkyReels anima as imagens de referência — o prompt apenas guia a movimentação
+   - Estrutura ideal: "[tipo de plano], [ação principal], [movimento de câmera], anime style"
+   - ⚠ PROIBIDO: descrições longas, narrativas, contexto histórico ou explicações no prompt
+   - ⚠ O prompt NÃO precisa repetir o que as imagens já mostram (cenário, personagens, cores)
+   - Bons exemplos:
+     "Medium shot, girl stands up from desk gesturing excitedly, camera slowly pushes in, anime style"
+     "Wide shot, characters walk through corridor, camera dollies forward, warm lighting"
+     "Close-up, boy looks at holographic screen with curious expression, soft camera pan right"
+   - Mau exemplo (NUNCA faça):
+     "Wide establishing shot of a futuristic holographic classroom in 2030. Four teenagers sit at interactive desks as holographic projections of ancient Greek maps illuminate the room in blue and gold light. A small robot floats near the teacher's desk."
 
 2. PROMPT DE IMAGEM (campo "image_prompt"):
    - Prompt em INGLÊS para geração de imagem estática via fal.ai / Flux
@@ -86,6 +94,15 @@ REGRAS OBRIGATÓRIAS — preencha TODOS os campos:
      CORRETO: "Claro, vamos juntas!"
    - Se a cena for silenciosa ou só musical, use string vazia: ""
    - Mantenha tom e personalidade dos personagens conforme os documentos do projeto
+   - ⚠ REGRA DE PROPORÇÃO ÁUDIO/VÍDEO (CRÍTICA):
+     O áudio gerado DEVE caber na duração do vídeo. Referência de tempo:
+     · 5s de vídeo  → máximo 1-2 frases curtas (~15-20 palavras)
+     · 8s de vídeo  → máximo 2-3 frases curtas (~25-35 palavras)
+     · 10s de vídeo → máximo 3-4 frases curtas (~40-50 palavras)
+     Texto longo demais gera áudio maior que o clip e fica cortado ou dessincronizado.
+     EXCEÇÃO: se a descrição do episódio EXPLICITAMENTE pedir narração longa, monólogo
+     ou sequência de imagens estáticas, então pode usar texto mais longo e ajustar a
+     duração do vídeo proporcionalmente.
 
 4. IMAGENS DE REFERÊNCIA (campo "ref_imgs"):
    - Use os paths EXATOS das imagens listadas nos recursos acima
@@ -239,8 +256,18 @@ O campo `audio_text` de cada cena usa estas diretrizes.
 ## Regras
 - Inclua APENAS o que será falado ou narrado — sem descrições de cena
 - Se a cena for silenciosa ou apenas musical, use string vazia: ""
-- Duração do áudio determina a duração do vídeo — escreva com ritmo adequado à cena
-- Evite texto muito longo que não couça no tempo de duração da cena (~5s ≈ 2-3 frases curtas)
+
+## ⚠ REGRA CRÍTICA: Proporção áudio/vídeo
+O áudio DEVE caber na duração do clip de vídeo. Referência:
+- 5s de vídeo  → máximo 1-2 frases curtas (~15-20 palavras)
+- 8s de vídeo  → máximo 2-3 frases curtas (~25-35 palavras)
+- 10s de vídeo → máximo 3-4 frases curtas (~40-50 palavras)
+
+Texto longo demais gera áudio maior que o clip → dessincronização.
+
+EXCEÇÃO: se a descrição do episódio pedir EXPLICITAMENTE narração longa,
+monólogo ou sequência de imagens, pode usar texto mais longo e ajustar
+a duração do vídeo proporcionalmente.
 
 ## Casting de vozes
 Definido na tabela de personagens nos documentos do projeto (campo voice_id).
@@ -253,27 +280,33 @@ DEFAULT_VIDEO_GUIDE = """\
 Este arquivo define as regras para geração de vídeos via SkyReels V3.
 O campo `prompt` de cada cena usa estas diretrizes.
 
-## Tasks disponíveis
-- **reference_to_video**: gera vídeo a partir de 1–4 imagens de referência + prompt
-- **single_shot_extension**: estende vídeo existente (5–30s)
-- **shot_switching_extension**: estende com transição cinemática (máx. 5s)
-- **talking_avatar**: avatar falante (retrato + áudio, até 200s)
+## Como o SkyReels funciona
+O modelo ANIMA as imagens de referência (ref_imgs). O prompt apenas guia:
+- Que AÇÃO/MOVIMENTO ocorre (personagem anda, vira, gesticula)
+- Que MOVIMENTO DE CÂMERA usar (pan, dolly, push in, zoom)
+- O prompt NÃO precisa descrever o que já está nas imagens (cenário, cores, roupas)
 
 ## Regras do prompt de vídeo
-- Escreva em INGLÊS
-- Inclua: composição, iluminação, movimento de câmera, emoção, ação dos personagens
-- Seja específico sobre direções (up/down/left/right) — o vídeo seguirá exatamente
-- ⚠ COERÊNCIA: o prompt de vídeo DEVE descrever a mesma ação/direção que o audio_text
+- Escreva em INGLÊS — MÁXIMO 2 frases curtas
+- Foque em: tipo de plano + ação + movimento de câmera
+- ⚠ PROIBIDO: descrições longas, narrativas, contexto ou explicações
+- Seja específico sobre direções (up/down/left/right)
+- ⚠ COERÊNCIA: o prompt DEVE descrever a mesma ação/direção que o audio_text
+
+## Bons exemplos
+"Medium shot, girl stands up gesturing excitedly, camera slowly pushes in, anime style"
+"Wide shot, group walks through corridor, camera dollies forward, warm lighting"
+"Close-up, boy looks at screen with curiosity, soft camera pan right, anime style"
+
+## Maus exemplos (NUNCA faça)
+"Wide establishing shot of a futuristic holographic classroom in 2030. Four teenagers
+sit at interactive desks as holographic projections of ancient Greek maps and the
+Parthenon illuminate the room in blue and gold light." ← MUITO LONGO, descritivo demais
 
 ## Referências visuais (ref_imgs)
 - MÁXIMO 4 imagens por cena
 - Use SEMPRE a imagem do ambiente + imagem do personagem que aparece
 - NUNCA duas imagens do mesmo personagem (duplica o personagem na cena)
-
-## Exemplo de prompt
-"Medium shot, Valen stands at school corridor, morning sunlight through windows,
-she turns to look at Lumi, curious expression, soft camera pan right,
-anime style, 2030 futuristic school, cinematic lighting"
 \
 """
 
@@ -2015,6 +2048,177 @@ Regras CRÍTICAS para existing_ref:
 
     threading.Thread(target=_run, daemon=True).start()
     return jsonify({"ok": True, "analyse_job_id": analyse_job_id})
+
+
+@app.route("/nqueues/<int:nq_id>/recreate-prompts", methods=["POST"])
+def nq_recreate_prompts(nq_id):
+    """Re-analisa toda a história do episódio e refaz prompts (prompt, audio_text, image_prompt)
+    de todas as cenas, mantendo labels, refs, seeds e configurações técnicas."""
+    with nq_lock:
+        nq = next((q for q in named_queues if q["id"] == nq_id), None)
+    if nq is None:
+        return jsonify({"error": "Fila não encontrada"}), 404
+
+    proj_name = nq.get("project", "")
+    jobs      = nq.get("jobs", [])
+    if not jobs:
+        return jsonify({"error": "Episódio sem cenas"}), 400
+
+    recreate_job_id = uuid.uuid4().hex[:8]
+    _bulk_img_state[recreate_job_id] = {"status": "running", "phase_msg": "Preparando re-análise…"}
+
+    def _run():
+        try:
+            # Coletar contexto do projeto
+            all_images, all_docs_content, all_audios = [], [], []
+            proj_dir = PROJECTS_DIR / proj_name if proj_name else None
+            if proj_dir and proj_dir.exists():
+                IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+                for subfolder in ("imagens", "figurantes"):
+                    img_dir = proj_dir / subfolder
+                    if img_dir.exists():
+                        for f in sorted(img_dir.iterdir()):
+                            if f.is_file() and f.suffix.lower() in IMAGE_EXTS:
+                                all_images.append(str(f.relative_to(PROJECT_ROOT)))
+                docs_dir = proj_dir / "docs"
+                if docs_dir.exists():
+                    for f in sorted(docs_dir.iterdir()):
+                        if f.is_file() and f.suffix in (".md", ".txt") and not f.name.startswith("_sys_"):
+                            try:
+                                all_docs_content.append(
+                                    f"--- {f.name} ---\n{f.read_text(encoding='utf-8', errors='ignore')[:2000]}"
+                                )
+                            except Exception:
+                                pass
+                audios_dir = proj_dir / "audios"
+                if audios_dir.exists():
+                    for f in sorted(audios_dir.iterdir()):
+                        if f.is_file():
+                            all_audios.append(f.name)
+
+            # Carregar system prompts do projeto
+            _sys_video = _load_project_prompt(proj_dir, "_sys_video.md", DEFAULT_VIDEO_GUIDE) if proj_dir else DEFAULT_VIDEO_GUIDE
+            _sys_audio = _load_project_prompt(proj_dir, "_sys_audio.md", DEFAULT_AUDIO_GUIDE) if proj_dir else DEFAULT_AUDIO_GUIDE
+
+            images_list = "\n".join(f"- {p}" for p in all_images) if all_images else "Nenhuma"
+            docs_block = ("\n\nDocumentos do projeto:\n" + "\n\n".join(all_docs_content)[:4000]) if all_docs_content else ""
+            audios_block = ("\n\nÁudios disponíveis:\n" + "\n".join(f"- {a}" for a in all_audios)) if all_audios else ""
+
+            # Descrição do episódio
+            ep_desc = nq.get("description", "") or ""
+
+            # Serializar cenas atuais para o Claude analisar
+            scenes_current = []
+            for i, j in enumerate(jobs):
+                scenes_current.append({
+                    "index": i,
+                    "label": j.get("label", ""),
+                    "prompt": j.get("prompt", ""),
+                    "image_prompt": j.get("image_prompt", ""),
+                    "audio_text": j.get("audio_text", ""),
+                    "voice_id": j.get("voice_id", ""),
+                    "audio_bg": j.get("audio_bg", ""),
+                    "duration": j.get("duration", 5),
+                    "ref_imgs": j.get("ref_imgs", []),
+                    "task_type": j.get("task_type", "reference_to_video"),
+                })
+
+            _bulk_img_state[recreate_job_id]["phase_msg"] = "Claude analisando e recriando prompts…"
+
+            recreate_prompt = f"""Você é um diretor de produção de série animada com IA (SkyReels V3).
+
+Analise o episódio abaixo e REFAÇA os prompts de TODAS as cenas, melhorando qualidade e coerência.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESCRIÇÃO DO EPISÓDIO:
+{ep_desc}
+
+Imagens de referência disponíveis:
+{images_list}
+{docs_block}
+{audios_block}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GUIA DE VÍDEO:
+{_sys_video}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GUIA DE ÁUDIO:
+{_sys_audio}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CENAS ATUAIS (a serem melhoradas):
+{json.dumps(scenes_current, ensure_ascii=False, indent=2)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUÇÕES:
+
+Para CADA cena, refaça os seguintes campos:
+1. "prompt" — prompt de vídeo CURTO em inglês (máx 2 frases): tipo de plano + ação + câmera
+2. "audio_text" — fala/narração em português PROPORCIONAL à duração do vídeo:
+   · 5s = máx 15-20 palavras · 8s = máx 25-35 palavras · 10s = máx 40-50 palavras
+3. "image_prompt" — prompt de imagem em inglês para fal.ai/Flux
+4. "voice_id" — extraia dos docs do projeto (tabela de casting). Use o voice_id do personagem que FALA na cena. NÃO invente voice_ids.
+5. "audio_bg" — path da trilha (projetos/<nome>/audios/<arquivo>) ou "" se não houver
+
+MANTENHA INALTERADOS: label, index, ref_imgs, task_type, duration, seed, offload, low_vram, resolution
+
+Retorne SOMENTE um array JSON com os campos atualizados para cada cena, no formato:
+[
+  {{
+    "index": 0,
+    "prompt": "...",
+    "image_prompt": "...",
+    "audio_text": "...",
+    "voice_id": "...",
+    "audio_bg": ""
+  }},
+  ...
+]
+
+APENAS o JSON. Nada mais."""
+
+            _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+            proc = subprocess.run(
+                ["/home/nmaldaner/.local/bin/claude", "-p", recreate_prompt],
+                capture_output=True, text=True, timeout=360, env=_env
+            )
+            raw = proc.stdout.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```[a-z]*\n?", "", raw)
+                raw = re.sub(r"\n?```$", "", raw)
+
+            updates = json.loads(raw)
+            if not isinstance(updates, list):
+                raise ValueError("Resposta não é um array")
+
+            # Aplicar atualizações
+            updated_count = 0
+            with nq_lock:
+                for upd in updates:
+                    idx = upd.get("index")
+                    if idx is None or idx < 0 or idx >= len(nq["jobs"]):
+                        continue
+                    job = nq["jobs"][idx]
+                    for field in ("prompt", "image_prompt", "audio_text", "voice_id", "audio_bg"):
+                        if field in upd:
+                            job[field] = upd[field]
+                    updated_count += 1
+            _save_queues()
+
+            _bulk_img_state[recreate_job_id] = {
+                "status": "done",
+                "phase_msg": f"Concluído: {updated_count} cena(s) atualizadas",
+            }
+        except Exception as e:
+            _bulk_img_state[recreate_job_id] = {
+                "status": "error",
+                "error": str(e),
+                "phase_msg": f"Erro: {e}",
+            }
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({"ok": True, "job_id": recreate_job_id})
 
 
 @app.route("/nqueues/<int:nq_id>/characters", methods=["PATCH"])
