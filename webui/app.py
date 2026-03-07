@@ -2180,13 +2180,37 @@ APENAS o JSON. Nada mais."""
 
             _env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
             proc = subprocess.run(
-                ["/home/nmaldaner/.local/bin/claude", "-p", recreate_prompt],
+                ["/home/nmaldaner/.local/bin/claude", "-p", recreate_prompt, "--output-format", "json"],
                 capture_output=True, text=True, timeout=360, env=_env
             )
             raw = proc.stdout.strip()
+            if not raw:
+                stderr_hint = (proc.stderr or "")[:300]
+                raise ValueError(f"Claude CLI retornou vazio. stderr: {stderr_hint}")
+
+            # Extrair JSON da resposta (pode vir dentro de result/content no output-format json)
+            try:
+                wrapper = json.loads(raw)
+                if isinstance(wrapper, dict) and "result" in wrapper:
+                    raw = wrapper["result"].strip()
+                elif isinstance(wrapper, dict) and "content" in wrapper:
+                    raw = wrapper["content"].strip()
+                elif isinstance(wrapper, list):
+                    # Já é o array direto
+                    raw = json.dumps(wrapper)
+            except (json.JSONDecodeError, TypeError):
+                pass  # raw não é JSON wrapper, tentar limpar
+
+            # Limpar markdown fences
             if raw.startswith("```"):
                 raw = re.sub(r"^```[a-z]*\n?", "", raw)
                 raw = re.sub(r"\n?```$", "", raw)
+
+            # Extrair array JSON se tiver texto antes/depois
+            bracket_start = raw.find("[")
+            bracket_end   = raw.rfind("]")
+            if bracket_start >= 0 and bracket_end > bracket_start:
+                raw = raw[bracket_start:bracket_end + 1]
 
             updates = json.loads(raw)
             if not isinstance(updates, list):
