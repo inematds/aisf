@@ -3543,8 +3543,7 @@ async function restartEpisodeVideos(nqId, projectName) {
   if (!confirm('Isso vai REINICIAR e gerar TODOS os v\xEDdeos do zero.\nV\xEDdeos anteriores ser\xE3o substitu\xEDdos. Continuar?')) return;
   const resetRes = await fetch(`/nqueues/${nqId}/restart`, {method:'POST'});
   if (!resetRes.ok) { const e = await resetRes.json(); alert(e.error || 'Erro ao reiniciar'); return; }
-  const runRes = await fetch(`/nqueues/${nqId}/run`, {method:'POST'});
-  if (!runRes.ok) { const e = await runRes.json(); alert(e.error || 'Erro ao rodar'); return; }
+  // /restart já inicia a geração automaticamente
   if (projectName) {
     await openEpisodeDetail(nqId, projectName);
   } else {
