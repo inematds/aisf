@@ -3530,8 +3530,22 @@ function buildEpisodeCard(ep, projectName) {
 }
 
 async function runEpisode(nqId, projectName) {
-  const res = await fetch(`/nqueues/${nqId}/run`, {method:'POST'});
-  if (!res.ok) { const e = await res.json(); alert(e.error || 'Erro ao rodar'); return; }
+  let res = await fetch(`/nqueues/${nqId}/run`, {method:'POST'});
+  if (!res.ok) {
+    // Se falhou, pode ser porque todas as cenas já estão done — perguntar se quer re-gerar
+    const e = await res.json();
+    const msg = e.error || 'Erro ao rodar';
+    if (msg.includes('sem cenas pendentes') || msg.includes('pendentes')) {
+      if (!confirm('Todas as cenas j\xE1 foram geradas. Deseja REINICIAR e gerar novamente todos os v\xEDdeos?')) return;
+      const resetRes = await fetch(`/nqueues/${nqId}/restart`, {method:'POST'});
+      if (!resetRes.ok) { const re = await resetRes.json(); alert(re.error || 'Erro ao reiniciar'); return; }
+      res = await fetch(`/nqueues/${nqId}/run`, {method:'POST'});
+      if (!res.ok) { const e2 = await res.json(); alert(e2.error || 'Erro ao rodar'); return; }
+    } else {
+      alert(msg);
+      return;
+    }
+  }
   if (projectName) {
     await openEpisodeDetail(nqId, projectName);
   } else {
